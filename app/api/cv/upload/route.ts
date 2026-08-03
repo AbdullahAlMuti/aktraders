@@ -84,19 +84,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Corrupted or invalid PDF header detected." }, { status: 400 });
     }
 
-    // Save Original PDF File to Secure Local Storage (/public/uploads/cvs/)
-    const sanitizeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const uniqueId = `cv-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const sanitizeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
     const storedFileName = `${uniqueId}_${sanitizeFileName}`;
-    const uploadDir = path.join(process.cwd(), "public", "uploads", "cvs");
 
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
+    // Create Base64 Data URI for Vercel Read-Only Serverless compatibility
+    const base64Data = buffer.toString("base64");
+    let originalPdfUrl = `data:application/pdf;base64,${base64Data}`;
+
+    // Attempt writing to local filesystem if writeable (local dev environment)
+    try {
+      const uploadDir = path.join(process.cwd(), "public", "uploads", "cvs");
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const filePath = path.join(uploadDir, storedFileName);
+      fs.writeFileSync(filePath, buffer);
+      originalPdfUrl = `/uploads/cvs/${storedFileName}`;
+    } catch (fsErr: any) {
+      console.log("Vercel Serverless read-only filesystem detected, using Data URI for PDF storage/preview.");
     }
-
-    const filePath = path.join(uploadDir, storedFileName);
-    fs.writeFileSync(filePath, buffer);
-    const originalPdfUrl = `/uploads/cvs/${storedFileName}`;
 
     let candidateName = "";
     let extractedText = "";
@@ -117,7 +124,7 @@ export async function POST(req: NextRequest) {
 
         const documentPart = {
           inlineData: {
-            data: buffer.toString("base64"),
+            data: base64Data,
             mimeType: "application/pdf",
           },
         };
@@ -147,7 +154,6 @@ export async function POST(req: NextRequest) {
 
     // Quality Validation
     if (!extractedText || extractedText.trim().length === 0) {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
       return NextResponse.json({ success: false, error: "Unreadable PDF file. Could not extract text." }, { status: 422 });
     }
 
