@@ -52,7 +52,7 @@ export function StatsCards() {
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <Card key={i} className="relative overflow-hidden transition-all border-[#e3e8ee] dark:border-slate-800 stripe-card-shadow hover:-translate-y-0.5">
+          <Card key={i} className="h-full flex flex-col justify-between relative overflow-hidden border-[#e6dfd8] dark:border-[#2e2c28]">
             <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
               <div className="flex items-start justify-between">
                 <div>

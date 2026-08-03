@@ -49,7 +49,7 @@ export function RecentCVTable() {
   ];
 
   return (
-    <Card className="border-slate-200/80 dark:border-slate-800">
+    <Card className="h-full flex flex-col justify-between border-slate-200/80 dark:border-slate-800">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
           Recently Uploaded CVs

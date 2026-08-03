@@ -222,7 +222,7 @@ export default function DepartmentsPage() {
             {filteredDepts.map((dept) => (
               <div
                 key={dept.id}
-                className="rounded-2xl border border-[#e3e8ee] bg-white p-5 dark:border-neutral-800 dark:bg-[#0c0d0e] flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md transition-all group relative"
+                className="rounded-2xl border border-[#e6dfd8] bg-white p-5 dark:border-neutral-800 dark:bg-[#0c0d0e] h-full flex flex-col justify-between space-y-4 group relative"
               >
                 <div>
                   {/* Top Bar: Code Badge & Status */}
