@@ -34,11 +34,11 @@ export function RecentCVTable() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="py-8 text-center text-xs text-neutral-400 font-mono">ডাটা লোড হচ্ছে... (Loading records...)</div>
+          <div className="py-8 text-center text-xs text-neutral-400 font-mono">Loading records...</div>
         ) : uploads.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
             <FileText className="h-8 w-8 text-neutral-400" />
-            <p className="text-xs text-neutral-500 font-medium">কোন আপলোড করা সিভি পাওয়া যায়নি</p>
+            <p className="text-xs text-neutral-500 font-medium">No Recently Uploaded CVs Found</p>
             <p className="text-[11px] text-neutral-400">No recent CV uploads available in the database.</p>
           </div>
         ) : (

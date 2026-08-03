@@ -39,7 +39,7 @@ export default function EmployeeProfilePage() {
   if (loading) {
     return (
       <PageContainer title="Employee Profile" subtitle="Detailed employee profile view">
-        <div className="py-20 text-center text-xs text-neutral-400 font-mono">এমপ্লয়ী প্রোফাইল ডাটা লোড হচ্ছে... (Loading profile...)</div>
+        <div className="py-20 text-center text-xs text-neutral-400 font-mono">Loading profile data...</div>
       </PageContainer>
     );
   }
@@ -49,7 +49,7 @@ export default function EmployeeProfilePage() {
       <PageContainer title="Employee Profile" subtitle="Detailed employee profile view">
         <div className="flex flex-col items-center justify-center py-20 text-center space-y-3 border border-dashed border-[#e6dfd8] dark:border-[#2e2c28] rounded-2xl">
           <UserX className="h-10 w-10 text-neutral-400" />
-          <h3 className="text-base font-bold text-neutral-800 dark:text-neutral-200">কোন এমপ্লয়ী প্রোফাইল ডাটা পাওয়া যায়নি</h3>
+          <h3 className="text-base font-bold text-neutral-800 dark:text-neutral-200">No Employee Profile Found</h3>
           <p className="text-xs text-neutral-500 max-w-md">
             No employee record exists in the database for the requested ID. Please add an employee or select a valid profile from the directory.
           </p>
@@ -120,7 +120,7 @@ export default function EmployeeProfilePage() {
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               {education.length === 0 ? (
-                <p className="text-xs text-neutral-400 font-mono">কোন শিক্ষাগত তথ্য নেই (No education history)</p>
+                <p className="text-xs text-neutral-400 font-mono">No academic education history recorded.</p>
               ) : (
                 education.map((edu: any, i: number) => (
                   <div key={i} className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900/60 space-y-1">
@@ -141,7 +141,7 @@ export default function EmployeeProfilePage() {
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               {experience.length === 0 ? (
-                <p className="text-xs text-neutral-400 font-mono">কোন কাজের অভিজ্ঞতা নেই (No work experience history)</p>
+                <p className="text-xs text-neutral-400 font-mono">No work experience history recorded.</p>
               ) : (
                 experience.map((exp: any, i: number) => (
                   <div key={i} className="p-3 rounded-lg bg-neutral-50 dark:bg-neutral-900/60 space-y-1">
@@ -164,7 +164,7 @@ export default function EmployeeProfilePage() {
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               {skills.length === 0 ? (
-                <p className="text-xs text-neutral-400 font-mono">কোন দক্ষতা তালিকাভুক্ত নেই (No skills listed)</p>
+                <p className="text-xs text-neutral-400 font-mono">No skills listed.</p>
               ) : (
                 skills.map((skill: string, i: number) => (
                   <Badge key={i} variant="default" className="text-xs px-3 py-1">

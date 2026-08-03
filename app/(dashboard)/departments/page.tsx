@@ -148,7 +148,7 @@ export default function DepartmentsPage() {
 
           <div className="flex flex-wrap items-center gap-4 text-[11px] pt-1">
             {departments.length === 0 ? (
-              <span className="text-xs text-neutral-400 font-mono">কোন বিভাগীয় ডাটা পাওয়া যায়নি (No department records found in database)</span>
+              <span className="text-xs text-neutral-400 font-mono">No department records found in database</span>
             ) : (
               departments.map((d) => (
                 <div key={d.id} className="flex items-center space-x-1.5">
@@ -182,11 +182,11 @@ export default function DepartmentsPage() {
         {/* 4. Grid View Mode */}
         {viewMode === "grid" && (
           loading ? (
-            <div className="py-12 text-center text-xs text-neutral-400 font-mono">ডিপার্টমেন্ট তথ্য লোড হচ্ছে... (Loading departments...)</div>
+            <div className="py-12 text-center text-xs text-neutral-400 font-mono">Loading departments...</div>
           ) : filteredDepts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center space-y-2 border border-dashed border-[#e6dfd8] dark:border-[#2e2c28] rounded-2xl">
               <Building2 className="h-10 w-10 text-neutral-400" />
-              <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">কোন ডিপার্টমেন্ট ডাটা পাওয়া যায়নি</p>
+              <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">No Department Data Available</p>
               <p className="text-xs text-neutral-400">No department records exist in the database yet.</p>
             </div>
           ) : (
@@ -276,7 +276,7 @@ export default function DepartmentsPage() {
                 {filteredDepts.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-xs text-neutral-400">
-                      কোন ডিপার্টমেন্ট তথ্য পাওয়া যায়নি (No department records available)
+                      No department records available
                     </td>
                   </tr>
                 ) : (

@@ -44,7 +44,7 @@ export function DepartmentDistributionChart() {
             <div className="h-24 w-24 rounded-full border-4 border-dashed border-neutral-200 dark:border-neutral-800 flex items-center justify-center">
               <span className="text-xs font-mono text-neutral-400">0 Staff</span>
             </div>
-            <p className="text-xs text-neutral-500">কোন বিভাগীয় ডাটা পাওয়া যায়নি (No department records)</p>
+            <p className="text-xs text-neutral-500">No department records available</p>
           </div>
         ) : (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-2">

@@ -36,7 +36,7 @@ export function ActivityFeed() {
         {activities.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
             <Activity className="h-8 w-8 text-neutral-400" />
-            <p className="text-xs text-neutral-500 font-medium">সাম্প্রতিক কোন কার্যকলাপ পাওয়া যায়নি</p>
+            <p className="text-xs text-neutral-500 font-medium">No Recent Activities Found</p>
             <p className="text-[11px] text-neutral-400">Recent activities will be recorded here when system actions occur.</p>
           </div>
         ) : (

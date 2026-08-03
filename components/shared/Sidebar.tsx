@@ -7,27 +7,79 @@ import { useUIStore } from "@/stores/use-ui-store";
 import { useAuth } from "@/hooks/use-auth";
 import {
   ChevronDown,
-  Search,
-  PenSquare,
-  Inbox,
   LayoutDashboard,
-  Layers,
-  Map,
+  UploadCloud,
   Users,
+  UserCheck,
   Building2,
   FileText,
+  Settings,
+  ShieldCheck,
   HelpCircle,
   LogOut,
-  FolderGit2,
-  ShieldCheck,
-  Briefcase,
-  UserCheck,
 } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen } = useUIStore();
   const { logout } = useAuth();
+
+  const navItems = [
+    {
+      name: "Dashboard",
+      href: "/",
+      icon: LayoutDashboard,
+      isActive: pathname === "/" || pathname === "/dashboard",
+    },
+    {
+      name: "CV Upload",
+      href: "/cv-upload",
+      icon: UploadCloud,
+      isActive: pathname.startsWith("/cv-upload"),
+    },
+    {
+      name: "Employee List",
+      href: "/employees",
+      icon: Users,
+      isActive: pathname === "/employees",
+    },
+    {
+      name: "Employee Profile",
+      href: "/employee-profile",
+      icon: UserCheck,
+      isActive: pathname.startsWith("/employee-profile") || pathname.startsWith("/profile"),
+    },
+    {
+      name: "Departments",
+      href: "/departments",
+      icon: Building2,
+      isActive: pathname.startsWith("/departments"),
+    },
+    {
+      name: "Reports",
+      href: "/reports",
+      icon: FileText,
+      isActive: pathname.startsWith("/reports"),
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      isActive: pathname.startsWith("/settings"),
+    },
+    {
+      name: "Users",
+      href: "/users",
+      icon: ShieldCheck,
+      isActive: pathname.startsWith("/users"),
+    },
+    {
+      name: "Help Center",
+      href: "/help",
+      icon: HelpCircle,
+      isActive: pathname.startsWith("/help"),
+    },
+  ];
 
   return (
     <aside
@@ -36,7 +88,7 @@ export function Sidebar() {
         sidebarOpen ? "w-60 translate-x-0" : "w-16 -translate-x-full md:translate-x-0"
       )}
     >
-      {/* 1. Header: Company Dropdown & Action Icons */}
+      {/* 1. Header: Company Badge */}
       <div className="flex h-12 items-center justify-between px-3 border-b border-[#e6dfd8] dark:border-[#2e2c28]">
         <Link href="/" className="flex items-center space-x-2 overflow-hidden group">
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#cc785c] text-white font-extrabold text-[11px] font-mono">
@@ -51,185 +103,38 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* 2. Scrollable Linear Navigation Tree */}
-      <div className="flex-1 overflow-y-auto py-2 px-2 space-y-4 text-xs scrollbar-none">
-        {/* Top Direct Items */}
-        <div className="space-y-0.5">
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center justify-between rounded-md px-2.5 py-1.5 font-medium transition-colors",
-              pathname === "/"
-                ? "bg-[#efe9de] dark:bg-[#252320] text-[#cc785c] font-semibold"
-                : "text-[#6c6a64] dark:text-[#a09d96] hover:bg-[#f5f0e8] dark:hover:bg-[#252320] hover:text-[#141413] dark:hover:text-white"
-            )}
-          >
-            <div className="flex items-center space-x-2.5">
-              <LayoutDashboard className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-              {sidebarOpen && <span>Dashboard</span>}
-            </div>
-          </Link>
-
-          <Link
-            href="/cv-upload"
-            className={cn(
-              "flex items-center justify-between rounded-md px-2.5 py-1.5 font-medium transition-colors",
-              pathname.startsWith("/cv-upload")
-                ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
-                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
-            )}
-          >
-            <div className="flex items-center space-x-2.5">
-              <Inbox className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-              {sidebarOpen && <span>AI CV Processing</span>}
-            </div>
-            {sidebarOpen && (
-              <span className="rounded bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-mono text-[10px] px-1.5 py-0.2 font-bold">
-                AI
-              </span>
-            )}
-          </Link>
-        </div>
-
-        {/* Section 1: Workspace */}
-        <div className="space-y-0.5">
-          {sidebarOpen && (
-            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
-              <span>Workspace</span>
-              <ChevronDown className="h-3 w-3" />
-            </div>
-          )}
-
-          <Link
-            href="/employees"
-            className={cn(
-              "flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium transition-colors",
-              pathname === "/employees"
-                ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
-                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
-            )}
-          >
-            <Users className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-            {sidebarOpen && <span>Employees</span>}
-          </Link>
-
-          <Link
-            href="/departments"
-            className={cn(
-              "flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium transition-colors",
-              pathname.startsWith("/departments")
-                ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
-                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
-            )}
-          >
-            <Building2 className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-            {sidebarOpen && <span>Departments</span>}
-          </Link>
-
-          <Link
-            href="/reports"
-            className={cn(
-              "flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium transition-colors",
-              pathname.startsWith("/reports")
-                ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
-                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
-            )}
-          >
-            <FileText className="h-4 w-4 shrink-0 text-neutral-500 dark:text-neutral-400" />
-            {sidebarOpen && <span>Analytics Reports</span>}
-          </Link>
-        </div>
-
-        {/* Section 2: Favorites */}
-        {sidebarOpen && (
-          <div className="space-y-0.5">
-            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
-              <span>Favorites</span>
-              <ChevronDown className="h-3 w-3" />
-            </div>
-
+      {/* 2. Menu Navigation Items in Exact Order */}
+      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1 text-xs scrollbar-none">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
             <Link
-              href="/employees?dept=IT"
-              className="flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center space-x-2.5 rounded-md px-2.5 py-2 font-medium transition-colors",
+                item.isActive
+                  ? "bg-[#efe9de] dark:bg-[#252320] text-[#cc785c] dark:text-[#cc785c] font-semibold"
+                  : "text-[#6c6a64] dark:text-[#a09d96] hover:bg-[#f5f0e8] dark:hover:bg-[#252320] hover:text-[#141413] dark:hover:text-white"
+              )}
             >
-              <Layers className="h-4 w-4 shrink-0 text-neutral-500" />
-              <span>IT Department</span>
+              <Icon className={cn("h-4 w-4 shrink-0", item.isActive ? "text-[#cc785c]" : "text-neutral-500 dark:text-neutral-400")} />
+              {sidebarOpen && <span>{item.name}</span>}
             </Link>
-
-            <Link
-              href="/employees?dept=HR"
-              className="flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white transition-colors"
-            >
-              <Layers className="h-4 w-4 shrink-0 text-neutral-500" />
-              <span>HR & Recruitment</span>
-            </Link>
-          </div>
-        )}
-
-        {/* Section 3: Teams Tree Hierarchy */}
-        {sidebarOpen && (
-          <div className="space-y-0.5">
-            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-medium text-neutral-400 dark:text-neutral-500">
-              <span>Your teams</span>
-              <ChevronDown className="h-3 w-3" />
-            </div>
-
-            {/* Parent Team Item */}
-            <div className="space-y-0.5">
-              <div className="flex items-center space-x-2.5 rounded-md px-2.5 py-1.5 font-medium text-neutral-900 dark:text-neutral-100">
-                <span className="flex h-4 w-4 items-center justify-center rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-bold text-[10px]">
-                  P
-                </span>
-                <span>Personal</span>
-                <ChevronDown className="h-3 w-3 text-neutral-400 ml-auto" />
-              </div>
-
-              {/* Nested Hairline Guide Tree */}
-              <div className="ml-4 border-l border-neutral-200 dark:border-neutral-800 pl-3 space-y-0.5 my-1">
-                <Link
-                  href="/employees?status=active"
-                  className="flex items-center space-x-2 py-1 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                >
-                  <UserCheck className="h-3.5 w-3.5 text-neutral-400" />
-                  <span>Active Staff</span>
-                </Link>
-                <Link
-                  href="/employees?status=onboarding"
-                  className="flex items-center space-x-2 py-1 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
-                >
-                  <Briefcase className="h-3.5 w-3.5 text-neutral-400" />
-                  <span>Onboarding</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+          );
+        })}
       </div>
 
-      {/* 3. Linear Footer: Help & Plan Badge */}
-      <div className="p-2 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between">
-        <Link
-          href="/help"
-          className="rounded-full p-1.5 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-colors"
-          title="Help & Documentation"
+      {/* 3. Bottom Footer: Logout */}
+      <div className="p-2 border-t border-[#e6dfd8] dark:border-[#2e2c28] flex items-center justify-between">
+        <button
+          onClick={logout}
+          className="w-full flex items-center space-x-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+          title="Logout"
         >
-          <HelpCircle className="h-4 w-4" />
-        </Link>
-
-        {sidebarOpen && (
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={logout}
-              className="rounded p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
-              title="Logout"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-            <span className="rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-2.5 py-0.5 text-[10px] font-medium text-neutral-600 dark:text-neutral-400">
-              Pro plan
-            </span>
-          </div>
-        )}
+          <LogOut className="h-4 w-4 shrink-0 text-rose-500" />
+          {sidebarOpen && <span>Logout</span>}
+        </button>
       </div>
     </aside>
   );

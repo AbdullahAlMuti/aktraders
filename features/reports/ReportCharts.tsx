@@ -59,19 +59,19 @@ export function ReportCharts() {
 
   const employmentTypes = [
     {
-      label: "সক্রিয় (Active Staff)",
+      label: "Active Staff",
       count: activeCount,
       percentage: total > 0 ? Math.round((activeCount / total) * 100) : 0,
       color: "bg-[#cc785c]",
     },
     {
-      label: "প্রসেসিং (In Processing)",
+      label: "In Processing",
       count: processingCount,
       percentage: total > 0 ? Math.round((processingCount / total) * 100) : 0,
       color: "bg-amber-500",
     },
     {
-      label: "অপেক্ষমান (Pending Review)",
+      label: "Pending Review",
       count: Math.max(0, pendingCount),
       percentage: total > 0 ? Math.round((Math.max(0, pendingCount) / total) * 100) : 0,
       color: "bg-[#22262b]",
@@ -90,7 +90,7 @@ export function ReportCharts() {
         <Card className="border-[#e6dfd8] dark:border-[#2e2c28] h-full">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-base font-bold text-neutral-900 dark:text-white">
-              মাস অনুযায়ী নতুন যোগদান (Monthly New Joinees)
+              Monthly New Joinees
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -127,7 +127,7 @@ export function ReportCharts() {
         <Card className="border-[#e6dfd8] dark:border-[#2e2c28] h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-bold text-neutral-900 dark:text-white">
-              অবস্থা ভিত্তিক বিশ্লেষণ (Status Breakdown)
+              Status Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -147,7 +147,7 @@ export function ReportCharts() {
                 </svg>
                 <div className="absolute bottom-2 text-center">
                   <span className="text-xl font-extrabold text-neutral-900 dark:text-white">{total.toLocaleString()}</span>
-                  <p className="text-[10px] text-neutral-400 font-semibold">মোট</p>
+                  <p className="text-[10px] text-neutral-400 font-semibold">Total</p>
                 </div>
               </div>
 
@@ -155,7 +155,7 @@ export function ReportCharts() {
                 <div className="flex items-center space-x-2">
                   <span className="h-3 w-3 rounded-full bg-[#cc785c]" />
                   <div>
-                    <p className="font-semibold text-neutral-700 dark:text-neutral-300">সক্রিয় (Active)</p>
+                    <p className="font-semibold text-neutral-700 dark:text-neutral-300">Active</p>
                     <p className="font-extrabold text-neutral-900 dark:text-white">
                       {activeCount} ({total > 0 ? Math.round((activeCount / total) * 100) : 0}%)
                     </p>
@@ -165,7 +165,7 @@ export function ReportCharts() {
                 <div className="flex items-center space-x-2">
                   <span className="h-3 w-3 rounded-full bg-amber-500" />
                   <div>
-                    <p className="font-semibold text-neutral-700 dark:text-neutral-300">প্রসেসিং (Processing)</p>
+                    <p className="font-semibold text-neutral-700 dark:text-neutral-300">Processing</p>
                     <p className="font-extrabold text-neutral-900 dark:text-white">
                       {processingCount} ({total > 0 ? Math.round((processingCount / total) * 100) : 0}%)
                     </p>
@@ -182,7 +182,7 @@ export function ReportCharts() {
         <Card className="border-[#e6dfd8] dark:border-[#2e2c28] h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-bold text-neutral-900 dark:text-white">
-              চাকরির ধরন অনুযায়ী (Employment Status Breakdown)
+              Employment Status Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-2">

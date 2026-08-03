@@ -33,11 +33,11 @@ export function ReportTable() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="py-8 text-center text-xs text-neutral-400 font-mono">রিপোর্ট লোড হচ্ছে... (Loading report...)</div>
+          <div className="py-8 text-center text-xs text-neutral-400 font-mono">Loading report...</div>
         ) : departments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-2">
             <FileText className="h-8 w-8 text-neutral-400" />
-            <p className="text-xs text-neutral-500 font-medium">কোন ডিপার্টমেন্ট রিপোর্ট ডাটা পাওয়া যায়নি</p>
+            <p className="text-xs text-neutral-500 font-medium">No Department Report Data Found</p>
             <p className="text-[11px] text-neutral-400">No records found in database to calculate department matrix.</p>
           </div>
         ) : (
