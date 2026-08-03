@@ -4,10 +4,6 @@ import {
   Users,
   UserCheck,
   BarChart3,
-  Settings,
-  ShieldCheck,
-  HelpCircle,
-  ShoppingBag,
   Building2,
   User,
 } from "lucide-react";
@@ -41,7 +37,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
   },
   {
     title: "Employee Profile",
-    href: "/profile",
+    href: "/employee-profile",
     icon: User,
   },
   {
@@ -53,31 +49,5 @@ export const MAIN_NAVIGATION: NavItem[] = [
     title: "Reports & Analytics",
     href: ROUTES.DASHBOARD.REPORTS,
     icon: BarChart3,
-  },
-  {
-    title: "User Management",
-    href: ROUTES.ADMIN.USERS,
-    icon: ShieldCheck,
-    roles: ["admin", "superadmin"],
-  },
-  {
-    title: "Customers",
-    href: ROUTES.MODULES.CUSTOMERS,
-    icon: UserCheck,
-  },
-  {
-    title: "Product Catalog",
-    href: ROUTES.MODULES.PRODUCTS,
-    icon: ShoppingBag,
-  },
-  {
-    title: "System Settings",
-    href: ROUTES.DASHBOARD.SETTINGS,
-    icon: Settings,
-  },
-  {
-    title: "Help Center",
-    href: ROUTES.DASHBOARD.HELP,
-    icon: HelpCircle,
   },
 ];

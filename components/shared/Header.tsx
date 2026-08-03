@@ -163,8 +163,8 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
                 <p className="text-xs font-bold text-[#0d253d] dark:text-slate-100">{user?.name || "Admin User"}</p>
                 <p className="text-[10px] text-[#64748d] truncate">{user?.email || "admin@aktraders.com"}</p>
               </div>
-              <Link href="/settings" className="block px-4 py-2 text-xs text-slate-700 hover:bg-[#f6f9fc] dark:text-slate-300 dark:hover:bg-slate-800/60">
-                Profile Settings
+              <Link href="/employee-profile" className="block px-4 py-2 text-xs text-slate-700 hover:bg-[#f6f9fc] dark:text-slate-300 dark:hover:bg-slate-800/60">
+                View Profile
               </Link>
               <button
                 onClick={logout}

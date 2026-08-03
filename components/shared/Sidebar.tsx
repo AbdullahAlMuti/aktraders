@@ -13,9 +13,6 @@ import {
   UserCheck,
   Building2,
   FileText,
-  Settings,
-  ShieldCheck,
-  HelpCircle,
   LogOut,
 } from "lucide-react";
 
@@ -60,24 +57,6 @@ export function Sidebar() {
       href: "/reports",
       icon: FileText,
       isActive: pathname.startsWith("/reports"),
-    },
-    {
-      name: "Settings",
-      href: "/settings",
-      icon: Settings,
-      isActive: pathname.startsWith("/settings"),
-    },
-    {
-      name: "Users",
-      href: "/users",
-      icon: ShieldCheck,
-      isActive: pathname.startsWith("/users"),
-    },
-    {
-      name: "Help Center",
-      href: "/help",
-      icon: HelpCircle,
-      isActive: pathname.startsWith("/help"),
     },
   ];
 
