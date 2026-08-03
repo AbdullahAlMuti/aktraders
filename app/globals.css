@@ -4,37 +4,37 @@
 
 @layer base {
   :root {
-    --background: 38 33% 97%; /* #faf9f5 Warm Claude Cream Canvas */
-    --foreground: 60 3% 8%;   /* #141413 Warm Ink */
+    --background: 30 5% 9%;    /* #181715 Claude Dark Charcoal */
+    --foreground: 38 33% 97%;  /* #faf9f5 Warm Cream Text */
 
-    --card: 38 32% 91%;       /* #efe9de Warm Light Cream Surface Card */
-    --card-foreground: 60 3% 8%;
+    --card: 30 7% 14%;         /* #252320 Dark Elevated Card */
+    --card-foreground: 38 33% 97%;
 
-    --popover: 38 33% 97%;
-    --popover-foreground: 60 3% 8%;
+    --popover: 30 5% 9%;
+    --popover-foreground: 38 33% 97%;
 
     --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 38 20% 92%;
-    --secondary-foreground: 60 3% 15%;
+    --secondary: 30 5% 16%;
+    --secondary-foreground: 38 33% 97%;
 
-    --muted: 38 15% 90%;
-    --muted-foreground: 45 4% 41%; /* #6c6a64 */
+    --muted: 30 5% 16%;
+    --muted-foreground: 38 5% 60%;
 
-    --accent: 38 20% 92%;
-    --accent-foreground: 60 3% 15%;
+    --accent: 30 5% 16%;
+    --accent-foreground: 38 33% 97%;
 
-    --destructive: 0 54% 52%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 38 33% 97%;
 
-    --border: 38 23% 88%;     /* #e6dfd8 Warm Hairline Border */
-    --input: 38 23% 88%;
+    --border: 30 5% 18%;       /* #2e2c28 */
+    --input: 30 5% 18%;
     --ring: 15 52% 58%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: #181715; /* Claude Warm Dark Navy/Charcoal */
+    --sidebar-background: #121110;
     --sidebar-foreground: #faf9f5;
     --sidebar-primary: #cc785c;
     --sidebar-active: #a9583e;
@@ -42,9 +42,9 @@
     /* Claude Specific Design Tokens */
     --claude-primary: #cc785c;
     --claude-primary-active: #a9583e;
-    --claude-ink: #141413;
-    --claude-canvas: #faf9f5;
-    --claude-hairline: #e6dfd8;
+    --claude-ink: #faf9f5;
+    --claude-canvas: #181715;
+    --claude-hairline: #2e2c28;
   }
 
   .dark {

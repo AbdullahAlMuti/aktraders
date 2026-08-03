@@ -1,7 +1,7 @@
 export const themeConfig = {
-  defaultTheme: "light",
+  defaultTheme: "dark",
   attribute: "class",
-  enableSystem: true,
+  enableSystem: false,
   disableTransitionOnChange: false,
   storageKey: "ak_traders_theme",
 };
