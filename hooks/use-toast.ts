@@ -1,26 +1,40 @@
-import { useState } from "react";
+import { create } from "zustand";
 
-export interface ToastMessage {
+export interface ToastItem {
   id: string;
-  title?: string;
-  description: string;
-  type: "success" | "error" | "info" | "warning";
+  title: string;
+  description?: string;
+  type?: "success" | "error" | "info" | "warning";
 }
 
-export function useToast() {
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+interface ToastState {
+  toasts: ToastItem[];
+  addToast: (toast: Omit<ToastItem, "id">) => void;
+  removeToast: (id: string) => void;
+}
 
-  const toast = ({ title, description, type = "info" }: Omit<ToastMessage, "id">) => {
+export const useToastStore = create<ToastState>((set) => ({
+  toasts: [],
+  addToast: (toast) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, title, description, type }]);
+    set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
+
+    // Auto dismiss after 4 seconds
     setTimeout(() => {
-      removeToast(id);
+      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
     }, 4000);
-  };
+  },
+  removeToast: (id) =>
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+}));
 
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  return { toasts, toast, removeToast };
-}
+export const toast = {
+  success: (title: string, description?: string) =>
+    useToastStore.getState().addToast({ title, description, type: "success" }),
+  error: (title: string, description?: string) =>
+    useToastStore.getState().addToast({ title, description, type: "error" }),
+  info: (title: string, description?: string) =>
+    useToastStore.getState().addToast({ title, description, type: "info" }),
+  warning: (title: string, description?: string) =>
+    useToastStore.getState().addToast({ title, description, type: "warning" }),
+};

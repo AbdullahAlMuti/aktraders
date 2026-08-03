@@ -12,6 +12,7 @@ export interface Employee {
   cvFileName?: string;
   cvFileSize?: string;
   avatarUrl?: string;
+  cvData?: any;
 }
 
 export interface EmployeeFilterState {

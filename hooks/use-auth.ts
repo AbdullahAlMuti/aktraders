@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/stores/use-auth-store";
 import { authService } from "@/services/auth.service";
-import { LoginCredentials } from "@/types/auth.types";
+import { LoginCredentials, SignUpCredentials } from "@/types/auth.types";
 import { useState } from "react";
 
 export function useAuth() {
@@ -17,6 +17,23 @@ export function useAuth() {
       return res;
     } catch (err: any) {
       setError(err.message || "Login failed");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signUp = async (credentials: SignUpCredentials) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await authService.signUp(credentials);
+      if (res.token) {
+        setAuth(res.user, res.token);
+      }
+      return res;
+    } catch (err: any) {
+      setError(err.message || "Sign up failed");
       throw err;
     } finally {
       setLoading(false);
@@ -40,6 +57,7 @@ export function useAuth() {
     loading,
     error,
     login,
+    signUp,
     logout,
   };
 }

@@ -23,6 +23,14 @@ export interface LoginCredentials {
   rememberMe?: boolean;
 }
 
+export interface SignUpCredentials {
+  name: string;
+  email: string;
+  password: string;
+  role?: UserRole;
+  department?: string;
+}
+
 export interface LoginResponse {
   user: User;
   token: string;

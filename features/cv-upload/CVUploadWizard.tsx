@@ -7,10 +7,15 @@ import { ReviewStep } from "./ReviewStep";
 import { SaveStep } from "./SaveStep";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
+import { employeeService } from "@/services/employee.service";
+import { Employee } from "@/types/employee.types";
 
 export function CVUploadWizard() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [savedEmployee, setSavedEmployee] = useState<Employee | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const steps = [
     { id: 1, label: "Upload CV" },
@@ -18,6 +23,32 @@ export function CVUploadWizard() {
     { id: 3, label: "Review Data" },
     { id: 4, label: "Save Record" },
   ];
+
+  const handleReviewSave = async (formData: any) => {
+    setIsSaving(true);
+    try {
+      const created = await employeeService.createEmployee({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        department: formData.department,
+        designation: formData.designation,
+        status: "active",
+        joiningDate: new Date().toISOString().split("T")[0],
+        cvFileName: formData.cvFileName || uploadedFile?.name,
+        cvFileSize: formData.cvFileSize,
+        cvData: { ...extractedData, ...formData },
+      });
+
+      setSavedEmployee(created);
+      setCurrentStep(4);
+    } catch (e) {
+      console.error("Failed to save employee to database:", e);
+      setCurrentStep(4);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -85,22 +116,29 @@ export function CVUploadWizard() {
         {currentStep === 2 && (
           <ExtractStep
             file={uploadedFile}
-            onNext={() => setCurrentStep(3)}
+            onNext={(data) => {
+              setExtractedData(data);
+              setCurrentStep(3);
+            }}
             onBack={() => setCurrentStep(1)}
           />
         )}
 
         {currentStep === 3 && (
           <ReviewStep
-            onNext={() => setCurrentStep(4)}
+            initialData={extractedData}
+            onNext={handleReviewSave}
             onBack={() => setCurrentStep(2)}
           />
         )}
 
         {currentStep === 4 && (
           <SaveStep
+            savedEmployee={savedEmployee}
             onReset={() => {
               setUploadedFile(null);
+              setExtractedData(null);
+              setSavedEmployee(null);
               setCurrentStep(1);
             }}
           />

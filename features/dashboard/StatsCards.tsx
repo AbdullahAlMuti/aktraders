@@ -10,8 +10,7 @@ export function StatsCards() {
       value: "3,000",
       subtitle: "All Active Staff",
       icon: Users,
-      bgColor: "bg-blue-50 dark:bg-blue-950/40",
-      iconColor: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-[#533afd]/10 text-[#533afd]",
       href: "/employees",
     },
     {
@@ -19,8 +18,7 @@ export function StatsCards() {
       value: "2,850",
       subtitle: "To Date",
       icon: CheckCircle2,
-      bgColor: "bg-emerald-50 dark:bg-emerald-950/40",
-      iconColor: "text-emerald-600 dark:text-emerald-400",
+      bgColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       href: "/employees?status=active",
     },
     {
@@ -28,8 +26,7 @@ export function StatsCards() {
       value: "120",
       subtitle: "AI Processing Active",
       icon: Hourglass,
-      bgColor: "bg-amber-50 dark:bg-amber-950/40",
-      iconColor: "text-amber-600 dark:text-amber-400",
+      bgColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       href: "/cv-upload",
     },
     {
@@ -37,8 +34,7 @@ export function StatsCards() {
       value: "2,980",
       subtitle: "To Date",
       icon: FileText,
-      bgColor: "bg-purple-50 dark:bg-purple-950/40",
-      iconColor: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-[#f96bee]/10 text-[#f96bee]",
       href: "/cv-upload",
     },
     {
@@ -46,8 +42,7 @@ export function StatsCards() {
       value: "320",
       subtitle: "This Month",
       icon: UserPlus,
-      bgColor: "bg-cyan-50 dark:bg-cyan-950/40",
-      iconColor: "text-cyan-600 dark:text-cyan-400",
+      bgColor: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
       href: "/employees",
     },
   ];
@@ -57,24 +52,24 @@ export function StatsCards() {
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
-          <Card key={i} className="relative overflow-hidden hover:shadow-md transition-all border-slate-200/80 dark:border-slate-800">
-            <CardContent className="p-4 flex flex-col justify-between h-full">
+          <Card key={i} className="relative overflow-hidden transition-all border-[#e3e8ee] dark:border-slate-800 stripe-card-shadow hover:-translate-y-0.5">
+            <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{stat.title}</p>
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-slate-100 mt-1">{stat.value}</h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{stat.subtitle}</p>
+                  <p className="text-[11px] font-medium text-[#64748d] dark:text-slate-400 tracking-tight">{stat.title}</p>
+                  <h3 className="text-2xl font-light text-[#0d253d] dark:text-slate-100 mt-1 font-tabular stripe-display-heading">{stat.value}</h3>
+                  <p className="text-[10px] text-[#64748d] dark:text-slate-400 mt-0.5 font-normal">{stat.subtitle}</p>
                 </div>
-                <div className={`p-2.5 rounded-xl ${stat.bgColor} ${stat.iconColor}`}>
-                  <Icon className="h-5 w-5" />
+                <div className={`p-2.5 rounded-full ${stat.bgColor}`}>
+                  <Icon className="h-4 w-4" />
                 </div>
               </div>
               <Link
                 href={stat.href}
-                className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-4 group"
+                className="inline-flex items-center text-xs font-semibold text-[#533afd] hover:text-[#4434d4] dark:text-blue-400 group pt-1"
               >
                 <span>View Details</span>
-                <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="h-3 w-3 ml-1 transition-transform group-hover:translate-x-1" />
               </Link>
             </CardContent>
           </Card>

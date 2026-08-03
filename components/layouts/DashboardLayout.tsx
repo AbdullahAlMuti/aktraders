@@ -12,14 +12,28 @@ export interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title, subtitle }: DashboardLayoutProps) {
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#071526] dark:text-slate-100 transition-colors overflow-x-hidden">
       <Sidebar />
-      <div className={cn("flex flex-col transition-all duration-300 min-h-screen", sidebarOpen ? "pl-64" : "pl-20")}>
+
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-xs md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div
+        className={cn(
+          "flex flex-col transition-all duration-300 min-h-screen w-full",
+          sidebarOpen ? "md:pl-60 pl-0" : "md:pl-16 pl-0"
+        )}
+      >
         <Header title={title} subtitle={subtitle} />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 md:p-8 w-full max-w-full">{children}</main>
       </div>
     </div>
   );

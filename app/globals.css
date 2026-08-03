@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 247 98% 61%; /* #533afd Stripe Electric Indigo */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -30,14 +30,25 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 247 98% 61%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: #04122E;
+    --sidebar-background: #0d253d; /* Stripe Deep Ink Navy */
     --sidebar-foreground: #F8FAFC;
-    --sidebar-primary: #1657FF;
-    --sidebar-active: #1E6091;
+    --sidebar-primary: #533afd;
+    --sidebar-active: #4434d4;
+
+    /* Stripe Design Tokens */
+    --stripe-primary: #533afd;
+    --stripe-primary-deep: #4434d4;
+    --stripe-primary-press: #2e2b8c;
+    --stripe-ink: #0d253d;
+    --stripe-ink-secondary: #273951;
+    --stripe-ink-mute: #64748d;
+    --stripe-canvas-soft: #f6f9fc;
+    --stripe-hairline: #e3e8ee;
+    --stripe-brand-dark: #1c1e54;
   }
 
   .dark {
@@ -50,7 +61,7 @@
     --popover: 222 47% 7%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 247 98% 61%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -67,22 +78,85 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --ring: 247 98% 61%;
 
-    --sidebar-background: #020D24;
+    --sidebar-background: #071526;
     --sidebar-foreground: #F8FAFC;
-    --sidebar-primary: #1657FF;
-    --sidebar-active: #0D3A99;
+    --sidebar-primary: #533afd;
+    --sidebar-active: #2e2b8c;
   }
 }
 
 @layer base {
+  html {
+    font-size: 14px;
+    letter-spacing: -0.011em;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   * {
     @apply border-border;
+    font-feature-settings: "ss01" 1;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-blue-500 selection:text-white;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-[#533afd] selection:text-white;
+    font-size: 0.875rem;
+    line-height: 1.45;
   }
+}
+
+/* Stripe Design System Utilities */
+.stripe-gradient-mesh {
+  background: radial-gradient(at 10% 20%, rgba(245, 233, 212, 0.6) 0px, transparent 50%),
+              radial-gradient(at 90% 10%, rgba(249, 107, 238, 0.4) 0px, transparent 50%),
+              radial-gradient(at 50% 50%, rgba(83, 58, 253, 0.35) 0px, transparent 60%),
+              radial-gradient(at 80% 90%, rgba(234, 34, 97, 0.3) 0px, transparent 50%),
+              linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+}
+
+.dark .stripe-gradient-mesh {
+  background: radial-gradient(at 10% 20%, rgba(83, 58, 253, 0.25) 0px, transparent 50%),
+              radial-gradient(at 90% 10%, rgba(28, 30, 84, 0.6) 0px, transparent 50%),
+              linear-gradient(135deg, #071526 0%, #0d253d 100%);
+}
+
+.stripe-card-shadow {
+  box-shadow: 0 1px 3px rgba(0, 55, 112, 0.06), 0 8px 24px rgba(0, 55, 112, 0.04);
+}
+
+.stripe-card-shadow-lg {
+  box-shadow: 0 10px 30px -5px rgba(0, 55, 112, 0.1), 0 4px 12px rgba(0, 55, 112, 0.05);
+}
+
+.stripe-btn-pill {
+  border-radius: 9999px;
+  background-color: #533afd;
+  color: #ffffff;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stripe-btn-pill:hover {
+  background-color: #4434d4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(83, 58, 253, 0.3);
+}
+.stripe-btn-pill:active {
+  background-color: #2e2b8c;
+  transform: translateY(0);
+}
+
+.font-tabular {
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+}
+
+.stripe-display-heading {
+  font-weight: 300;
+  letter-spacing: -0.035em;
 }
 
 /* Custom Scrollbar */

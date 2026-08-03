@@ -17,20 +17,37 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const supabase = createClient();
 
+    const syncUserProfile = async (user: any, token: string = "") => {
+      let dbProfile: any = null;
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        dbProfile = data;
+      } catch (e) {
+        // Fallback to metadata if DB table query fails
+      }
+
+      useAuthStore.getState().setAuth(
+        {
+          id: user.id,
+          name: dbProfile?.name || user.user_metadata?.name || user.email || "User",
+          email: user.email!,
+          role: (dbProfile?.role || user.app_metadata?.role || user.user_metadata?.role || "employee") as UserRole,
+          department: dbProfile?.department || user.user_metadata?.department,
+          avatarUrl: dbProfile?.avatar_url || user.user_metadata?.avatar_url,
+          createdAt: user.created_at,
+        },
+        token
+      );
+    };
+
     // Get initial session on mount
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        useAuthStore.getState().setAuth(
-          {
-            id: user.id,
-            name: user.user_metadata?.name || user.email || "User",
-            email: user.email!,
-            role: (user.app_metadata?.role as UserRole) || "employee",
-            department: user.user_metadata?.department,
-            createdAt: user.created_at,
-          },
-          "" // token is managed by @supabase/ssr cookies; not needed in the store
-        );
+        syncUserProfile(user);
       }
     });
 
@@ -39,17 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        useAuthStore.getState().setAuth(
-          {
-            id: session.user.id,
-            name: session.user.user_metadata?.name || session.user.email || "User",
-            email: session.user.email!,
-            role: (session.user.app_metadata?.role as UserRole) || "employee",
-            department: session.user.user_metadata?.department,
-            createdAt: session.user.created_at,
-          },
-          session.access_token
-        );
+        syncUserProfile(session.user, session.access_token);
       } else {
         useAuthStore.getState().logout();
       }
