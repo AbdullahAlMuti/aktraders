@@ -3,11 +3,11 @@ import { Users, CheckCircle, UserX, FileCheck, UserPlus } from "lucide-react";
 
 export function ReportSummaryCards() {
   const cards = [
-    { title: "মোট এমপ্লয়ী", value: "3,000", subtitle: "সকল সময়", icon: Users, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40" },
-    { title: "সক্রিয় এমপ্লয়ী", value: "2,850", subtitle: "বর্তমানে সক্রিয়", icon: CheckCircle, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" },
-    { title: "বিচ্যুত / অবসরপ্রাপ্ত", value: "120", subtitle: "এই বছরে", icon: UserX, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40" },
-    { title: "CV আপলোড হয়েছে", value: "2,980", subtitle: "এই পর্যন্ত", icon: FileCheck, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/40" },
-    { title: "নতুন যোগদান", value: "320", subtitle: "এই বছরে", icon: UserPlus, color: "text-cyan-600 bg-cyan-50 dark:bg-cyan-950/40" },
+    { title: "Total Employees", value: "3,000", subtitle: "All Time", icon: Users, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/40" },
+    { title: "Active Employees", value: "2,850", subtitle: "Currently Active", icon: CheckCircle, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40" },
+    { title: "Resigned / Retired", value: "120", subtitle: "This Period", icon: UserX, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/40" },
+    { title: "CVs Uploaded", value: "2,980", subtitle: "This Period", icon: FileCheck, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/40" },
+    { title: "New Joinees", value: "320", subtitle: "This Period", icon: UserPlus, color: "text-cyan-600 bg-cyan-50 dark:bg-cyan-950/40" },
   ];
 
   return (

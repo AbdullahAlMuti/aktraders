@@ -1,52 +1,52 @@
 import { PageContainer } from "@/components/layouts/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { HelpCircle, Mail, Phone, BookOpen, MessageSquare } from "lucide-react";
+import { Mail, Phone, BookOpen, MessageSquare } from "lucide-react";
 
 export const metadata = {
-  title: "সাহায্য কেন্দ্র (Help Center)",
+  title: "Help Center",
   description: "AK Traders ERP user guides and support",
 };
 
 export default function HelpCenterPage() {
   const faqs = [
     {
-      q: "কীভাবে নতুন CV আপলোড ও AI প্রসেসিং করব?",
-      a: "বাম পাশের সাইডবার থেকে 'সিডি আপলোড' ট্যাবে যান। আপনার PDF/Image ফাইলটি ড্র্যাগ করে ড্রপ করুন বা ব্রাউজ করুন। AI স্বয়ংক্রিয়ভাবে তথ্য এক্সট্র্যাক্ট করবে।",
+      q: "How do I upload a new CV and run AI extraction?",
+      a: "Navigate to 'CV Upload' from the left sidebar. Drag and drop your PDF/Image CV file into the dropzone or click browse. The AI will automatically extract and structure the employee data.",
     },
     {
-      q: "সিস্টেম থেকে রিপোর্ট কীভাবে Excel বা PDF এ এক্সপোর্ট করব?",
-      a: "'রিপোর্ট' পৃষ্ঠায় গিয়ে ডানপাশের 'Excel এক্সপোর্ট' বা 'PDF এক্সপোর্ট' বোতামে ক্লিক করুন।",
+      q: "How can I export system reports to Excel or PDF?",
+      a: "Go to the 'Reports & Analytics' page and click on either the 'Export Excel' (green) or 'Export PDF' (red) buttons located at the top right of the page.",
     },
     {
-      q: "নতুন এডমিন বা এইচ আর ইউজার কীভাবে যুক্ত করব?",
-      a: "'ব্যবহারকারী' (User Management) সেকশনে গিয়ে 'Add User' বোতামে ক্লিক করুন এবং প্রয়োজনীয় তথ্য প্রদান করুন।",
+      q: "How do I add a new System Administrator or HR user?",
+      a: "Go to the 'User Management' section under Admin, click the 'Add User' button, and fill in the required account details and roles.",
     },
   ];
 
   return (
     <PageContainer
-      title="সাহায্য কেন্দ্র (Help Center & Support)"
-      subtitle="সিস্টেম ব্যবহার নির্দেশিকা ও সাপোর্ট টিম যোগাযোগ"
-      breadcrumbs={[{ label: "সাহায্য কেন্দ্র" }]}
+      title="Help Center & Support"
+      subtitle="System documentation, FAQs, and IT support contacts"
+      breadcrumbs={[{ label: "Help Center" }]}
     >
       <div className="space-y-6 max-w-4xl">
         {/* Support Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="p-4 border-slate-200/80 dark:border-slate-800 flex flex-col items-center text-center space-y-2">
             <BookOpen className="h-8 w-8 text-blue-600 mb-1" />
-            <h4 className="font-bold text-sm">ইউজার গাইড</h4>
-            <p className="text-xs text-slate-500">ধাপ ভিত্তিক নির্দেশিকা পড়ুন</p>
+            <h4 className="font-bold text-sm">User Guides</h4>
+            <p className="text-xs text-slate-500">Read step-by-step tutorials</p>
           </Card>
 
           <Card className="p-4 border-slate-200/80 dark:border-slate-800 flex flex-col items-center text-center space-y-2">
             <Mail className="h-8 w-8 text-emerald-600 mb-1" />
-            <h4 className="font-bold text-sm">ইমেইল সাপোর্ট</h4>
+            <h4 className="font-bold text-sm">Email Support</h4>
             <p className="text-xs text-slate-500">support@aktraders.com</p>
           </Card>
 
           <Card className="p-4 border-slate-200/80 dark:border-slate-800 flex flex-col items-center text-center space-y-2">
             <Phone className="h-8 w-8 text-purple-600 mb-1" />
-            <h4 className="font-bold text-sm">হটলাইন হেল্পলাইন</h4>
+            <h4 className="font-bold text-sm">IT Helpline</h4>
             <p className="text-xs text-slate-500">+880 9612-000000</p>
           </Card>
         </div>
@@ -56,7 +56,7 @@ export default function HelpCenterPage() {
           <CardHeader>
             <CardTitle className="text-base font-bold flex items-center space-x-2">
               <MessageSquare className="h-5 w-5 text-blue-600" />
-              <span>সাধারণ জিজ্ঞাসিত প্রশ্নাবলী (Frequently Asked Questions)</span>
+              <span>Frequently Asked Questions</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

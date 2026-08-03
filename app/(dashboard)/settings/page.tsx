@@ -4,26 +4,26 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 
 export const metadata = {
-  title: "সেটিংস (System Settings)",
+  title: "System Settings",
   description: "Configure system preferences and settings",
 };
 
 export default function SettingsPage() {
   return (
     <PageContainer
-      title="সেটিংস (System Settings)"
-      subtitle="আপনার অ্যাকাউন্ট ও অ্যাপ্লিকেশনের কনফিগারেশন পরিবর্তন করুন"
-      breadcrumbs={[{ label: "সেটিংস" }]}
+      title="System Settings"
+      subtitle="Configure account parameters, organization metadata, and application preferences"
+      breadcrumbs={[{ label: "Settings" }]}
     >
       <div className="max-w-2xl space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>সাধারণ সেটিংস (General Settings)</CardTitle>
+            <CardTitle>General Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input label="কোম্পানির নাম (Company Name)" defaultValue="A K Traders Limited" />
-            <Input label="সিস্টেম ইমেইল (System Email)" defaultValue="info@aktraders.com" />
-            <Button className="bg-[#1657FF] hover:bg-blue-700">সংরক্ষণ করুন</Button>
+            <Input label="Company Name" defaultValue="A K Traders Limited" />
+            <Input label="System Admin Email" defaultValue="info@aktraders.com" />
+            <Button className="bg-[#1657FF] hover:bg-blue-700">Save Changes</Button>
           </CardContent>
         </Card>
       </div>

@@ -39,12 +39,12 @@ export function EmployeeList() {
 
   const columns: Column<Employee>[] = [
     {
-      header: "আইডি (ID)",
+      header: "Employee ID",
       accessorKey: "id",
       cell: (item) => <span className="font-mono text-xs font-bold text-blue-600 dark:text-blue-400">{item.id}</span>,
     },
     {
-      header: "এমপ্লয়ী (Employee)",
+      header: "Employee Name",
       cell: (item) => (
         <div className="flex items-center space-x-3">
           <Avatar name={item.name} size="sm" />
@@ -56,17 +56,17 @@ export function EmployeeList() {
       ),
     },
     {
-      header: "বিভাগ (Department)",
+      header: "Department",
       accessorKey: "department",
       cell: (item) => <span className="font-semibold text-slate-700 dark:text-slate-300">{item.department}</span>,
     },
     {
-      header: "পদবী (Designation)",
+      header: "Designation",
       accessorKey: "designation",
       cell: (item) => <span className="text-slate-600 dark:text-slate-400">{item.designation}</span>,
     },
     {
-      header: "অবস্থা (Status)",
+      header: "Status",
       accessorKey: "status",
       cell: (item) => (
         <Badge
@@ -78,18 +78,18 @@ export function EmployeeList() {
               : "secondary"
           }
         >
-          {item.status === "active" ? "সক্রিয় (Active)" : item.status === "processing" ? "প্রক্রিয়াধীন" : "অপেক্ষমাণ"}
+          {item.status === "active" ? "Active" : item.status === "processing" ? "Processing" : "Pending"}
         </Badge>
       ),
     },
     {
-      header: "যোগদানের তারিখ",
+      header: "Joining Date",
       accessorKey: "joiningDate",
       cell: (item) => <span className="text-slate-500 font-mono text-xs">{item.joiningDate}</span>,
     },
     {
-      header: "অ্যাকশন",
-      cell: (item) => (
+      header: "Actions",
+      cell: () => (
         <div className="flex items-center space-x-1 justify-end">
           <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-blue-600">
             <Eye className="h-4 w-4" />

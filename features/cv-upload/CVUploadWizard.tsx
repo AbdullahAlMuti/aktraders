@@ -13,10 +13,10 @@ export function CVUploadWizard() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const steps = [
-    { id: 1, label: "সিডি আপলোড", labelEn: "Upload CV" },
-    { id: 2, label: "তথ্য এক্সট্র্যাক্ট", labelEn: "Extract Info" },
-    { id: 3, label: "পর্যালোচনা", labelEn: "Review Data" },
-    { id: 4, label: "সংরক্ষণ", labelEn: "Save Record" },
+    { id: 1, label: "Upload CV" },
+    { id: 2, label: "Extract Info" },
+    { id: 3, label: "Review Data" },
+    { id: 4, label: "Save Record" },
   ];
 
   return (

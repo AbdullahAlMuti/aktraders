@@ -15,7 +15,7 @@ export function ProgressBar({ value, showLabel = false, className, barClassName 
     <div className="w-full space-y-1">
       {showLabel && (
         <div className="flex justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
-          <span>প্রগ্রেস (Progress)</span>
+          <span>Progress</span>
           <span>{clampedValue}%</span>
         </div>
       )}

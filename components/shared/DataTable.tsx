@@ -27,8 +27,8 @@ export function DataTable<T extends { id?: string | number }>({
   columns,
   data,
   isLoading,
-  emptyTitle = "কোন ডাটা পাওয়া যায়নি (No data found)",
-  emptyDescription = "নতুন ফিল্টার দিয়ে চেষ্টা করুন বা নতুন এন্ট্রি যোগ করুন।",
+  emptyTitle = "No data found",
+  emptyDescription = "Try adjusting your search query or filter options.",
   page = 1,
   totalPages = 1,
   onPageChange,
@@ -50,7 +50,7 @@ export function DataTable<T extends { id?: string | number }>({
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-32 text-center">
-                  <Spinner label="ডাটা লোড হচ্ছে... (Loading data)" />
+                  <Spinner label="Loading data..." />
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
@@ -78,7 +78,7 @@ export function DataTable<T extends { id?: string | number }>({
       {onPageChange && totalPages > 1 && (
         <div className="flex items-center justify-between px-2 py-1">
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            পৃষ্ঠা <span className="font-semibold text-slate-900 dark:text-slate-100">{page}</span> / {totalPages}
+            Page <span className="font-semibold text-slate-900 dark:text-slate-100">{page}</span> of {totalPages}
           </p>
           <div className="flex space-x-2">
             <Button
@@ -87,7 +87,7 @@ export function DataTable<T extends { id?: string | number }>({
               disabled={page <= 1 || isLoading}
               onClick={() => onPageChange(page - 1)}
             >
-              <ChevronLeft className="h-4 w-4 mr-1" /> পূর্ববর্তী (Prev)
+              <ChevronLeft className="h-4 w-4 mr-1" /> Previous
             </Button>
             <Button
               variant="outline"
@@ -95,7 +95,7 @@ export function DataTable<T extends { id?: string | number }>({
               disabled={page >= totalPages || isLoading}
               onClick={() => onPageChange(page + 1)}
             >
-              পরবর্তী (Next) <ChevronRight className="h-4 w-4 ml-1" />
+              Next <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         </div>

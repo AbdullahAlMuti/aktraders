@@ -6,7 +6,7 @@ import { cn } from "@/utils/cn";
 import { MAIN_NAVIGATION } from "@/constants/navigation";
 import { useUIStore } from "@/stores/use-ui-store";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, ChevronRight } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -53,11 +53,7 @@ export function Sidebar() {
               )}
             >
               <Icon className={cn("h-5 w-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-white" : "text-slate-400")} />
-              {sidebarOpen && (
-                <span className="flex-1 truncate">
-                  {item.titleBn} <span className="text-xs opacity-75 font-normal">({item.title})</span>
-                </span>
-              )}
+              {sidebarOpen && <span className="flex-1 truncate">{item.title}</span>}
               {sidebarOpen && item.badge && (
                 <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-bold text-cyan-300 border border-cyan-400/30">
                   {item.badge}
@@ -77,7 +73,7 @@ export function Sidebar() {
           )}
         >
           <LogOut className="h-5 w-5 shrink-0 text-slate-400" />
-          {sidebarOpen && <span>লগ আউট (Log Out)</span>}
+          {sidebarOpen && <span>Logout</span>}
         </button>
       </div>
     </aside>

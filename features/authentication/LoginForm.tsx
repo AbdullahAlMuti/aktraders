@@ -31,9 +31,9 @@ export function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      email: "admin@aktraders.com",
-      password: "password123",
-      rememberMe: true,
+      email: "",
+      password: "",
+      rememberMe: false,
     },
   });
 

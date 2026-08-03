@@ -8,23 +8,23 @@ export function handleApiError(error: unknown): string {
       return data.message;
     }
     if (error.response?.status === 401) {
-      return "অনুমোদন ব্যর্থ হয়েছে। আবার লগইন করুন। (Unauthorized access)";
+      return "Unauthorized access. Please log in again.";
     }
     if (error.response?.status === 403) {
-      return "আপনার এই কার্যক্রমে অনুমতি নেই। (Forbidden access)";
+      return "Forbidden access. You do not have permission to perform this action.";
     }
     if (error.response?.status === 404) {
-      return "অনুরোধকৃত ডাটা পাওয়া যায়নি। (Resource not found)";
+      return "Requested resource not found.";
     }
     if (error.response?.status === 500) {
-      return "সার্ভারে সমস্যা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর চেষ্টা করুন। (Server error)";
+      return "Internal server error. Please try again later.";
     }
-    return error.message || "নেটওয়ার্ক সংযোগে ত্রুটি ঘটেছে।";
+    return error.message || "A network error occurred.";
   }
 
   if (error instanceof Error) {
     return error.message;
   }
 
-  return "একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। (An unexpected error occurred)";
+  return "An unexpected error occurred.";
 }

@@ -1,40 +1,53 @@
-import { LoginCredentials, LoginResponse, User } from "@/types/auth.types";
-import { api } from "./api-client";
-import { API_ENDPOINTS } from "@/constants/api-endpoints";
+import { LoginCredentials, LoginResponse, User, UserRole } from "@/types/auth.types";
+import { createClient } from "@/utils/supabase/client";
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    // For demo/development mode, simulate backend response if API endpoint is unready
-    try {
-      const response = await api.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, credentials);
-      return response.data;
-    } catch (error) {
-      // Fallback mock response for rapid enterprise UI verification
-      return {
-        user: {
-          id: "usr-001",
-          name: "Admin User",
-          email: credentials.email || "admin@aktraders.com",
-          role: "admin",
-          department: "Management",
-          createdAt: new Date().toISOString(),
-        },
-        token: "mock-jwt-token-aktraders-2026",
-        refreshToken: "mock-refresh-token",
-      };
-    }
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: credentials.email,
+      password: credentials.password,
+    });
+
+    if (error) throw new Error(error.message);
+
+    // Map Supabase user to our application User type
+    // Role comes from app_metadata (server-controlled, secure for authorization)
+    return {
+      user: {
+        id: data.user.id,
+        name: data.user.user_metadata?.name || data.user.email || "User",
+        email: data.user.email!,
+        role: (data.user.app_metadata?.role as UserRole) || "employee",
+        department: data.user.user_metadata?.department,
+        createdAt: data.user.created_at,
+      },
+      token: data.session.access_token,
+      refreshToken: data.session.refresh_token,
+    };
   },
 
   async logout(): Promise<void> {
-    try {
-      await api.post(API_ENDPOINTS.AUTH.LOGOUT);
-    } catch (e) {
-      // Silent catch for logout
-    }
+    const supabase = createClient();
+    await supabase.auth.signOut();
   },
 
   async getCurrentUser(): Promise<User> {
-    const response = await api.get<User>(API_ENDPOINTS.AUTH.ME);
-    return response.data;
+    const supabase = createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) throw new Error("Not authenticated");
+
+    return {
+      id: user.id,
+      name: user.user_metadata?.name || user.email || "User",
+      email: user.email!,
+      role: (user.app_metadata?.role as UserRole) || "employee",
+      department: user.user_metadata?.department,
+      createdAt: user.created_at,
+    };
   },
 };

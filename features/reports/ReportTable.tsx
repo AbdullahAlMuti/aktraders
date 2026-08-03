@@ -3,32 +3,32 @@ import { Eye } from "lucide-react";
 
 export function ReportTable() {
   const reports = [
-    { sl: 1, department: "সেলস", total: 900, active: 860, newJoinees: 95, left: 40, cvUploaded: 890 },
-    { sl: 2, department: "অপারেশনস", total: 750, active: 720, newJoinees: 70, left: 30, cvUploaded: 740 },
-    { sl: 3, department: "এইচ আর", total: 450, active: 430, newJoinees: 40, left: 20, cvUploaded: 445 },
-    { sl: 4, department: "ফাইন্যান্স", total: 300, active: 290, newJoinees: 25, left: 10, cvUploaded: 298 },
-    { sl: 5, department: "আইটি", total: 300, active: 290, newJoinees: 50, left: 10, cvUploaded: 295 },
-    { sl: 6, department: "অন্যান্য", total: 300, active: 260, newJoinees: 40, left: 40, cvUploaded: 302 },
+    { sl: 1, department: "Sales", total: 900, active: 860, newJoinees: 95, left: 40, cvUploaded: 890 },
+    { sl: 2, department: "Operations", total: 750, active: 720, newJoinees: 70, left: 30, cvUploaded: 740 },
+    { sl: 3, department: "HR", total: 450, active: 430, newJoinees: 40, left: 20, cvUploaded: 445 },
+    { sl: 4, department: "Finance", total: 300, active: 290, newJoinees: 25, left: 10, cvUploaded: 298 },
+    { sl: 5, department: "IT", total: 300, active: 290, newJoinees: 50, left: 10, cvUploaded: 295 },
+    { sl: 6, department: "Others", total: 300, active: 260, newJoinees: 40, left: 40, cvUploaded: 302 },
   ];
 
   return (
     <Card className="border-slate-200/80 dark:border-slate-800">
       <CardHeader>
-        <CardTitle className="text-base font-bold">বিস্তারিত রিপোর্ট (Detailed Report Matrix)</CardTitle>
+        <CardTitle className="text-base font-bold">Detailed Report Matrix</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-800/50 font-bold">
-                <th className="py-3 px-3 text-center">সিরিয়াল</th>
-                <th className="py-3 px-3 text-left">বিভাগ</th>
-                <th className="py-3 px-3 text-center">মোট এমপ্লয়ী</th>
-                <th className="py-3 px-3 text-center">সক্রিয় এমপ্লয়ী</th>
-                <th className="py-3 px-3 text-center">নতুন যোগদান</th>
-                <th className="py-3 px-3 text-center">বিচ্যুত / অবসরপ্রাপ্ত</th>
-                <th className="py-3 px-3 text-center">CV আপলোড</th>
-                <th className="py-3 px-3 text-center">কার্যক্রম</th>
+                <th className="py-3 px-3 text-center">SL</th>
+                <th className="py-3 px-3 text-left">Department</th>
+                <th className="py-3 px-3 text-center">Total Employees</th>
+                <th className="py-3 px-3 text-center">Active Employees</th>
+                <th className="py-3 px-3 text-center">New Joinees</th>
+                <th className="py-3 px-3 text-center">Resigned / Retired</th>
+                <th className="py-3 px-3 text-center">CV Uploaded</th>
+                <th className="py-3 px-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -51,7 +51,7 @@ export function ReportTable() {
             </tbody>
             <tfoot>
               <tr className="bg-slate-100 dark:bg-slate-800 font-extrabold text-slate-900 dark:text-slate-100 border-t border-slate-200 dark:border-slate-700">
-                <td colSpan={2} className="py-3 px-3">মোট (Total)</td>
+                <td colSpan={2} className="py-3 px-3">Total</td>
                 <td className="py-3 px-3 text-center">3,000</td>
                 <td className="py-3 px-3 text-center text-emerald-600">2,850</td>
                 <td className="py-3 px-3 text-center text-blue-600">320</td>

@@ -14,11 +14,11 @@ export function ExtractStep({
   onBack: () => void;
 }) {
   const steps = [
-    { title: "ডকুমেন্ট পড়া হয়েছে", desc: "PDF থেকে টেক্সট এক্সট্র্যাক্ট করা হয়েছে", status: "completed" },
-    { title: "টেক্সট বিশ্লেষণ", desc: "গুরুত্বপূর্ণ তথ্য শনাক্ত করা হয়েছে", status: "completed" },
-    { title: "তথ্য শ্রেণীবিন্যাস", desc: "নাম, ঠিকানা, শিক্ষা, অভিজ্ঞতা আলাদা করা হয়েছে", status: "completed" },
-    { title: "তথ্য এক্সট্র্যাক্ট হচ্ছে", desc: "স্ট্রাকচার্ড ডেটায় রূপান্তর করা হচ্ছে...", status: "active" },
-    { title: "সম্পন্ন হচ্ছে", desc: "ডেটা যাচাই ও প্রস্তুত করা হচ্ছে...", status: "pending" },
+    { title: "Document Read Complete", desc: "Text extracted from PDF document", status: "completed" },
+    { title: "Text Analysis", desc: "Key information and structure identified", status: "completed" },
+    { title: "Data Categorization", desc: "Name, address, education, and experience categorized", status: "completed" },
+    { title: "Extracting Fields", desc: "Converting raw data to structured format...", status: "active" },
+    { title: "Finalizing Record", desc: "Validating data integrity...", status: "pending" },
   ];
 
   return (
@@ -27,7 +27,7 @@ export function ExtractStep({
         {/* Left Column: AI Extraction Progress */}
         <div className="lg:col-span-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-6">
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-            AI তথ্য এক্সট্র্যাক্ট প্রগ্রেস (AI Progress)
+            AI Data Extraction Progress
           </h3>
 
           <div className="space-y-5">
@@ -60,10 +60,10 @@ export function ExtractStep({
           <div className="rounded-xl bg-blue-50/70 p-4 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900 space-y-3">
             <div className="flex items-center space-x-2 text-xs font-bold text-blue-900 dark:text-blue-200">
               <Cpu className="h-4 w-4 text-blue-600 animate-pulse" />
-              <span>AI প্রসেসিং...</span>
+              <span>AI Processing...</span>
             </div>
             <p className="text-xs text-blue-700 dark:text-blue-300">
-              দয়া করে অপেক্ষা করুন, এটি কিছু সময় নিতে পারে।
+              Please wait, this process may take a few moments.
             </p>
             <ProgressBar value={78} showLabel />
           </div>
@@ -73,7 +73,7 @@ export function ExtractStep({
         <div className="lg:col-span-7 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-              আপলোডকৃত সিডি প্রিভিউ (CV Preview)
+              Uploaded CV Preview
             </h3>
             <span className="text-xs font-semibold text-slate-500 font-mono">
               {file?.name || "Rahim_Hasan_CV.pdf"} (3.2 MB)
@@ -144,12 +144,12 @@ export function ExtractStep({
       {/* Bottom Action Footer */}
       <div className="flex items-center justify-between rounded-xl bg-blue-50/50 p-4 border border-blue-100 dark:border-slate-800 dark:bg-slate-900">
         <p className="text-xs text-slate-600 dark:text-slate-400">
-          💡 AI সমস্ত তথ্য এক্সট্র্যাক্ট করার পর আপনি পরবর্তী ধাপে তথ্য যাচাই করতে পারবেন।
+          💡 Once AI finishes extracting all information, you can review and edit data in the next step.
         </p>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={onBack}>পূর্ববর্তী</Button>
+          <Button variant="outline" onClick={onBack}>Previous</Button>
           <Button onClick={onNext} className="bg-[#1657FF] hover:bg-blue-700" rightIcon={<ArrowRight className="h-4 w-4" />}>
-            পরবর্তী ধাপ (Next Step)
+            Next Step
           </Button>
         </div>
       </div>

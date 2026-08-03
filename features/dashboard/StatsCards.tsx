@@ -6,50 +6,45 @@ import Link from "next/link";
 export function StatsCards() {
   const stats = [
     {
-      title: "মোট এমপ্লয়ী",
-      titleEn: "Total Employees",
+      title: "Total Employees",
       value: "3,000",
-      subtitle: "সকল এমপ্লয়ী",
+      subtitle: "All Active Staff",
       icon: Users,
       bgColor: "bg-blue-50 dark:bg-blue-950/40",
       iconColor: "text-blue-600 dark:text-blue-400",
       href: "/employees",
     },
     {
-      title: "সফলভাবে প্রক্রিয়াকৃত",
-      titleEn: "Successfully Processed",
+      title: "Successfully Processed",
       value: "2,850",
-      subtitle: "এই পর্যন্ত",
+      subtitle: "To Date",
       icon: CheckCircle2,
       bgColor: "bg-emerald-50 dark:bg-emerald-950/40",
       iconColor: "text-emerald-600 dark:text-emerald-400",
       href: "/employees?status=active",
     },
     {
-      title: "প্রক্রিয়াধীন",
-      titleEn: "In Processing",
+      title: "In Processing",
       value: "120",
-      subtitle: "AI প্রসেসিং চলছে",
+      subtitle: "AI Processing Active",
       icon: Hourglass,
       bgColor: "bg-amber-50 dark:bg-amber-950/40",
       iconColor: "text-amber-600 dark:text-amber-400",
       href: "/cv-upload",
     },
     {
-      title: "CV আপলোড হয়েছে",
-      titleEn: "CV Uploaded",
+      title: "CV Uploaded",
       value: "2,980",
-      subtitle: "এই পর্যন্ত",
+      subtitle: "To Date",
       icon: FileText,
       bgColor: "bg-purple-50 dark:bg-purple-950/40",
       iconColor: "text-purple-600 dark:text-purple-400",
       href: "/cv-upload",
     },
     {
-      title: "নতুন যোগদান",
-      titleEn: "New Joinees",
+      title: "New Joinees",
       value: "320",
-      subtitle: "এই মাসে",
+      subtitle: "This Month",
       icon: UserPlus,
       bgColor: "bg-cyan-50 dark:bg-cyan-950/40",
       iconColor: "text-cyan-600 dark:text-cyan-400",
@@ -78,7 +73,7 @@ export function StatsCards() {
                 href={stat.href}
                 className="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 mt-4 group"
               >
-                <span>বিস্তারিত দেখুন</span>
+                <span>View Details</span>
                 <ArrowRight className="h-3.5 w-3.5 ml-1 transition-transform group-hover:translate-x-1" />
               </Link>
             </CardContent>

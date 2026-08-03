@@ -2,22 +2,22 @@ import { z } from "zod";
 
 export const emailSchema = z
   .string()
-  .min(1, "ইমেইল প্রয়োজন / Email is required")
-  .email("সঠিক ইমেইল ফরম্যাট লিখুন / Enter a valid email address");
+  .min(1, "Email address is required")
+  .email("Please enter a valid email address");
 
 export const passwordSchema = z
   .string()
-  .min(6, "পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে / Password must be at least 6 characters");
+  .min(6, "Password must be at least 6 characters long");
 
 export const phoneSchema = z
   .string()
-  .regex(/^(?:\+8801|01)[3-9]\d{8}$/, "সঠিক বাংলাদেশী মোবাইল নম্বর দিন / Enter valid BD phone number");
+  .regex(/^(?:\+8801|01)[3-9]\d{8}$/, "Please enter a valid phone number");
 
 export const fileUploadSchema = z.object({
-  file: z.instanceof(File, { message: "ফাইল আপলোড করুন / File is required" })
-    .refine((file) => file.size <= 10 * 1024 * 1024, "সর্বোচ্চ ১০ এমবি ফাইল সাপোর্ট করবে / Max file size is 10MB")
+  file: z.instanceof(File, { message: "File is required" })
+    .refine((file) => file.size <= 10 * 1024 * 1024, "Maximum file size supported is 10MB")
     .refine(
       (file) => ["application/pdf", "image/jpeg", "image/png"].includes(file.type),
-      "কেবলমাত্র PDF, JPG, PNG ফাইল সমর্থিত / Only PDF, JPG, PNG supported"
+      "Only PDF, JPG, and PNG files are supported"
     ),
 });

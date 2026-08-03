@@ -3,19 +3,18 @@ import {
   UploadCloud,
   Users,
   UserCheck,
-  Building2,
   BarChart3,
   Settings,
   ShieldCheck,
   HelpCircle,
-  FolderKanban,
   ShoppingBag,
+  Building2,
+  User,
 } from "lucide-react";
 import { ROUTES } from "./routes";
 
 export interface NavItem {
   title: string;
-  titleBn: string;
   href: string;
   icon: any;
   badge?: string;
@@ -26,57 +25,58 @@ export interface NavItem {
 export const MAIN_NAVIGATION: NavItem[] = [
   {
     title: "Dashboard",
-    titleBn: "ড্যাশবোর্ড",
     href: ROUTES.DASHBOARD.HOME,
     icon: LayoutDashboard,
   },
   {
     title: "CV Upload",
-    titleBn: "সিডি আপলোড",
     href: ROUTES.DASHBOARD.CV_UPLOAD,
     icon: UploadCloud,
     badge: "AI",
   },
   {
-    title: "Employee List",
-    titleBn: "এমপ্লয়ী তালিকা",
+    title: "Employee Directory",
     href: ROUTES.DASHBOARD.EMPLOYEES,
     icon: Users,
   },
   {
-    title: "Reports",
-    titleBn: "রিপোর্ট",
+    title: "Employee Profile",
+    href: "/profile",
+    icon: User,
+  },
+  {
+    title: "Departments",
+    href: "/departments",
+    icon: Building2,
+  },
+  {
+    title: "Reports & Analytics",
     href: ROUTES.DASHBOARD.REPORTS,
     icon: BarChart3,
   },
   {
     title: "User Management",
-    titleBn: "ব্যবহারকারী",
     href: ROUTES.ADMIN.USERS,
     icon: ShieldCheck,
     roles: ["admin", "superadmin"],
   },
   {
     title: "Customers",
-    titleBn: "গ্রাহকগণ",
     href: ROUTES.MODULES.CUSTOMERS,
     icon: UserCheck,
   },
   {
-    title: "Products",
-    titleBn: "পণ্যসমূহ",
+    title: "Product Catalog",
     href: ROUTES.MODULES.PRODUCTS,
     icon: ShoppingBag,
   },
   {
-    title: "Settings",
-    titleBn: "সেটিংস",
+    title: "System Settings",
     href: ROUTES.DASHBOARD.SETTINGS,
     icon: Settings,
   },
   {
     title: "Help Center",
-    titleBn: "সাহায্য কেন্দ্র",
     href: ROUTES.DASHBOARD.HELP,
     icon: HelpCircle,
   },

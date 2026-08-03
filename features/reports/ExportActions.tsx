@@ -6,7 +6,6 @@ import { FileSpreadsheet, FileText, Filter, Calendar } from "lucide-react";
 import { useState } from "react";
 
 export function ExportActions() {
-  const [dateRange, setDateRange] = useState("2026-full");
   const [department, setDepartment] = useState("all");
 
   return (
@@ -21,25 +20,27 @@ export function ExportActions() {
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
           options={[
-            { label: "সকল বিভাগ (All Departments)", value: "all" },
-            { label: "সেলস (Sales)", value: "Sales" },
-            { label: "অপারেশনস (Operations)", value: "Operations" },
-            { label: "এইচ আর (HR)", value: "HR" },
+            { label: "All Departments", value: "all" },
+            { label: "Sales", value: "Sales" },
+            { label: "Operations", value: "Operations" },
+            { label: "HR", value: "HR" },
+            { label: "Finance", value: "Finance" },
+            { label: "IT", value: "IT" },
           ]}
           className="w-48"
         />
 
         <Button variant="primary" size="sm" leftIcon={<Filter className="h-3.5 w-3.5" />}>
-          ফিল্টার (Filter)
+          Filter
         </Button>
       </div>
 
       <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
         <Button variant="outline" size="sm" className="border-emerald-600 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30" leftIcon={<FileSpreadsheet className="h-4 w-4" />}>
-          Excel এক্সপোর্ট
+          Export Excel
         </Button>
         <Button variant="outline" size="sm" className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30" leftIcon={<FileText className="h-4 w-4" />}>
-          PDF এক্সপোর্ট
+          Export PDF
         </Button>
       </div>
     </div>

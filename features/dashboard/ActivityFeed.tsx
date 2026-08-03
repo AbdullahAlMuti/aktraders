@@ -7,31 +7,31 @@ export function ActivityFeed() {
     {
       icon: UploadCloud,
       color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
-      text: "Rahim_Hasan_CV.pdf ফাইলটি সফলভাবে প্রসেস করা হয়েছে",
+      text: "CV file Rahim_Hasan_CV.pdf successfully processed",
       timestamp: "02-05-2024, 10:30 AM",
     },
     {
       icon: UserPlus,
       color: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
-      text: "নতুন এমপ্লয়ী যোগ হয়েছে: Md. Salim Uddin",
+      text: "New employee profile created: Md. Salim Uddin",
       timestamp: "02-05-2024, 09:20 AM",
     },
     {
       icon: Cpu,
       color: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
-      text: "120 টি CV এখন AI প্রসেসিং চলছে",
+      text: "120 CVs currently under AI processing",
       timestamp: "02-05-2024, 09:00 AM",
     },
     {
       icon: FileText,
       color: "bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400",
-      text: "Fahima_Akter_CV.pdf ফাইলটি সফলভাবে প্রসেস করা হয়েছে",
+      text: "CV file Fahima_Akter_CV.pdf successfully processed",
       timestamp: "02-05-2024, 08:45 AM",
     },
     {
       icon: Download,
       color: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400",
-      text: "রিপোর্ট ডাউনলোড করা হয়েছে",
+      text: "Monthly employee report exported",
       timestamp: "02-05-2024, 08:30 AM",
     },
   ];
@@ -40,10 +40,10 @@ export function ActivityFeed() {
     <Card className="border-slate-200/80 dark:border-slate-800">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
-          সাম্প্রতিক কার্যক্রম (Recent Activities)
+          Recent Activities
         </CardTitle>
         <Link href="#" className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">
-          সব দেখুন -&gt;
+          View All -&gt;
         </Link>
       </CardHeader>
       <CardContent>

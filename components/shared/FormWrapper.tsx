@@ -19,7 +19,7 @@ export function FormWrapper({
   description,
   children,
   onSubmit,
-  submitLabel = "সংরক্ষণ করুন (Save)",
+  submitLabel = "Save Changes",
   isLoading = false,
   cancelLabel,
   onCancel,
@@ -36,7 +36,7 @@ export function FormWrapper({
         <CardFooter className="flex justify-end space-x-2 border-t border-slate-100 pt-4 dark:border-slate-800">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
-              {cancelLabel || "বাতিল (Cancel)"}
+              {cancelLabel || "Cancel"}
             </Button>
           )}
           <Button type="submit" isLoading={isLoading}>

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Download, Mail, Phone, MapPin, Briefcase, GraduationCap, FileText } from "lucide-react";
 
 export const metadata = {
-  title: "এমপ্লয়ী প্রোফাইল (Employee Profile)",
+  title: "Employee Profile",
   description: "Detailed employee CV profile view",
 };
 
@@ -33,12 +33,12 @@ export default function EmployeeProfilePage() {
 
   return (
     <PageContainer
-      title="এমপ্লয়ী প্রোফাইল (Employee Profile)"
-      subtitle="সিস্টেমে সংরক্ষিত বিস্তারিত ব্যক্তিগত ও পেশাগত তথ্য"
-      breadcrumbs={[{ label: "এমপ্লয়ী তালিকা", href: "/employees" }, { label: employee.name }]}
+      title="Employee Profile"
+      subtitle="Comprehensive personal and professional CV details"
+      breadcrumbs={[{ label: "Employee Directory", href: "/employees" }, { label: employee.name }]}
       actions={
         <Button className="bg-[#1657FF] hover:bg-blue-700" leftIcon={<Download className="h-4 w-4" />}>
-          CV ডাউনলোড করুন (Download CV)
+          Download Original CV
         </Button>
       }
     >
@@ -51,7 +51,7 @@ export default function EmployeeProfilePage() {
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{employee.name}</h2>
               <p className="text-sm font-medium text-slate-500">{employee.designation}</p>
               <Badge variant="success" className="mt-2">
-                {employee.status === "active" ? "সক্রিয় (Active)" : "নিষ্ক্রিয়"}
+                Active Staff
               </Badge>
             </div>
 
@@ -70,7 +70,7 @@ export default function EmployeeProfilePage() {
               </div>
               <div className="flex items-center space-x-3 text-slate-600 dark:text-slate-400">
                 <Briefcase className="h-4 w-4 text-blue-600 shrink-0" />
-                <span>বিভাগ: {employee.department}</span>
+                <span>Department: {employee.department}</span>
               </div>
             </div>
           </Card>
@@ -82,7 +82,7 @@ export default function EmployeeProfilePage() {
           <Card className="border-slate-200/80 dark:border-slate-800">
             <CardHeader className="flex flex-row items-center space-x-2 pb-3">
               <GraduationCap className="h-5 w-5 text-blue-600" />
-              <CardTitle className="text-base font-bold">শিক্ষাগত যোগ্যতা (Education)</CardTitle>
+              <CardTitle className="text-base font-bold">Academic Background</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               {employee.education.map((edu, i) => (
@@ -99,7 +99,7 @@ export default function EmployeeProfilePage() {
           <Card className="border-slate-200/80 dark:border-slate-800">
             <CardHeader className="flex flex-row items-center space-x-2 pb-3">
               <Briefcase className="h-5 w-5 text-emerald-600" />
-              <CardTitle className="text-base font-bold">কর্মসংস্থান ও অভিজ্ঞতা (Work Experience)</CardTitle>
+              <CardTitle className="text-base font-bold">Work Experience</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
               {employee.experience.map((exp, i) => (
@@ -118,7 +118,7 @@ export default function EmployeeProfilePage() {
           <Card className="border-slate-200/80 dark:border-slate-800">
             <CardHeader className="flex flex-row items-center space-x-2 pb-3">
               <FileText className="h-5 w-5 text-purple-600" />
-              <CardTitle className="text-base font-bold">দক্ষতা (Skills & Expertise)</CardTitle>
+              <CardTitle className="text-base font-bold">Skills & Expertise</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               {employee.skills.map((skill, i) => (

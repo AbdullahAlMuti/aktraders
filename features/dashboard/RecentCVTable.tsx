@@ -11,7 +11,7 @@ export function RecentCVTable() {
       fileName: "Rahim_Hasan_CV.pdf",
       date: "02-05-2024",
       time: "10:30 AM",
-      status: "সম্পন্ন",
+      status: "Completed",
       variant: "success" as const,
     },
     {
@@ -19,7 +19,7 @@ export function RecentCVTable() {
       fileName: "Fahima_Akter_CV.pdf",
       date: "02-05-2024",
       time: "09:45 AM",
-      status: "সম্পন্ন",
+      status: "Completed",
       variant: "success" as const,
     },
     {
@@ -27,7 +27,7 @@ export function RecentCVTable() {
       fileName: "Salim_Uddin_CV.pdf",
       date: "02-05-2024",
       time: "09:20 AM",
-      status: "প্রক্রিয়াধীন",
+      status: "Processing",
       variant: "warning" as const,
     },
     {
@@ -35,7 +35,7 @@ export function RecentCVTable() {
       fileName: "Nusrat_Jahan_CV.pdf",
       date: "02-05-2024",
       time: "08:55 AM",
-      status: "প্রক্রিয়াধীন",
+      status: "Processing",
       variant: "warning" as const,
     },
     {
@@ -43,7 +43,7 @@ export function RecentCVTable() {
       fileName: "Abdur_Rahman_CV.pdf",
       date: "02-05-2024",
       time: "08:20 AM",
-      status: "অপেক্ষমাণ",
+      status: "Pending",
       variant: "secondary" as const,
     },
   ];
@@ -52,10 +52,10 @@ export function RecentCVTable() {
     <Card className="border-slate-200/80 dark:border-slate-800">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
-          সাম্প্রতিক আপলোডকৃত CV (Recently Uploaded CVs)
+          Recently Uploaded CVs
         </CardTitle>
         <Link href="/cv-upload" className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">
-          সব দেখুন -&gt;
+          View All -&gt;
         </Link>
       </CardHeader>
       <CardContent>
@@ -63,11 +63,11 @@ export function RecentCVTable() {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-slate-100 text-slate-500 dark:border-slate-800 text-left font-semibold">
-                <th className="py-2.5 px-2">নাম (Name)</th>
-                <th className="py-2.5 px-2">ফাইলের নাম</th>
-                <th className="py-2.5 px-2">আপলোডের তারিখ</th>
-                <th className="py-2.5 px-2">অবস্থা (Status)</th>
-                <th className="py-2.5 px-2 text-right">অ্যাকশন</th>
+                <th className="py-2.5 px-2">Name</th>
+                <th className="py-2.5 px-2">File Name</th>
+                <th className="py-2.5 px-2">Upload Date</th>
+                <th className="py-2.5 px-2">Status</th>
+                <th className="py-2.5 px-2 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

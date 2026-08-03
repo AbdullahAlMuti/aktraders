@@ -7,25 +7,24 @@ export function CVProcessingChart() {
   const [selectedYear, setSelectedYear] = useState("2026");
 
   const points = [
-    { month: "জানু", val: 240 },
-    { month: "ফেব্রু", val: 300 },
-    { month: "মার্চ", val: 410 },
-    { month: "এপ্রিল", val: 390 },
-    { month: "মে", val: 460 },
-    { month: "জুন", val: 620 },
-    { month: "জুলাই", val: 820 },
-    { month: "আগস্ট", val: 590 },
-    { month: "সেপ্টে", val: 400 },
-    { month: "অক্টো", val: 480 },
-    { month: "নভে", val: 520 },
-    { month: "ডিসে", val: 310 },
+    { month: "Jan", val: 240 },
+    { month: "Feb", val: 300 },
+    { month: "Mar", val: 410 },
+    { month: "Apr", val: 390 },
+    { month: "May", val: 460 },
+    { month: "Jun", val: 620 },
+    { month: "Jul", val: 820 },
+    { month: "Aug", val: 590 },
+    { month: "Sep", val: 400 },
+    { month: "Oct", val: 480 },
+    { month: "Nov", val: 520 },
+    { month: "Dec", val: 310 },
   ];
 
   const maxVal = 1000;
   const svgWidth = 600;
   const svgHeight = 200;
 
-  // Convert data points to SVG coordinates
   const coords = points.map((p, index) => {
     const x = (index / (points.length - 1)) * (svgWidth - 40) + 20;
     const y = svgHeight - (p.val / maxVal) * (svgHeight - 40) - 20;
@@ -40,21 +39,20 @@ export function CVProcessingChart() {
     <Card className="border-slate-200/80 dark:border-slate-800">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
-          মাস অনুযায়ী CV প্রসেসিং ট্রেন্ড (Monthly CV Processing Trend)
+          Monthly CV Processing Trend
         </CardTitle>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
           className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         >
-          <option value="2026">এই বছর (2026)</option>
+          <option value="2026">This Year (2026)</option>
           <option value="2025">2025</option>
         </select>
       </CardHeader>
       <CardContent>
         <div className="relative w-full overflow-x-auto pt-4">
           <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-48 overflow-visible">
-            {/* Grid lines */}
             {[0, 250, 500, 750, 1000].map((gridVal) => {
               const y = svgHeight - (gridVal / maxVal) * (svgHeight - 40) - 20;
               return (
@@ -67,7 +65,6 @@ export function CVProcessingChart() {
               );
             })}
 
-            {/* Gradient Area */}
             <defs>
               <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
@@ -78,11 +75,8 @@ export function CVProcessingChart() {
               d={`${pathD} L ${coords[coords.length - 1].x} ${svgHeight - 20} L ${coords[0].x} ${svgHeight - 20} Z`}
               fill="url(#blueGradient)"
             />
-
-            {/* Line Path */}
             <path d={pathD} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
-            {/* Data Dots */}
             {coords.map((c, i) => (
               <g key={i} className="group cursor-pointer">
                 <circle cx={c.x} cy={c.y} r="4" className="fill-blue-600 stroke-white stroke-2 hover:r-6 transition-all" />
@@ -90,7 +84,6 @@ export function CVProcessingChart() {
             ))}
           </svg>
 
-          {/* Month Labels */}
           <div className="flex justify-between px-2 text-[10px] text-slate-500 mt-2">
             {points.map((p, i) => (
               <span key={i}>{p.month}</span>

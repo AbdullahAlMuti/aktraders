@@ -3,19 +3,19 @@ import Link from "next/link";
 
 export function DepartmentDistributionChart() {
   const departments = [
-    { name: "সেলস", nameEn: "Sales", count: 900, percentage: "30%", color: "#2563eb" },
-    { name: "অপারেশনস", nameEn: "Ops", count: 750, percentage: "25%", color: "#10b981" },
-    { name: "এইচ আর", nameEn: "HR", count: 450, percentage: "15%", color: "#f59e0b" },
-    { name: "ফাইন্যান্স", nameEn: "Finance", count: 300, percentage: "10%", color: "#8b5cf6" },
-    { name: "আইটি", nameEn: "IT", count: 300, percentage: "10%", color: "#06b6d4" },
-    { name: "অন্যান্য", nameEn: "Others", count: 300, percentage: "10%", color: "#f43f5e" },
+    { name: "Sales", count: 900, percentage: "30%", color: "#2563eb" },
+    { name: "Operations", count: 750, percentage: "25%", color: "#10b981" },
+    { name: "HR", count: 450, percentage: "15%", color: "#f59e0b" },
+    { name: "Finance", count: 300, percentage: "10%", color: "#8b5cf6" },
+    { name: "IT", count: 300, percentage: "10%", color: "#06b6d4" },
+    { name: "Others", count: 300, percentage: "10%", color: "#f43f5e" },
   ];
 
   return (
     <Card className="border-slate-200/80 dark:border-slate-800">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
-          বিভাগ অনুযায়ী এমপ্লয়ী (Department Wise Breakdown)
+          Department Wise Breakdown
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -32,7 +32,7 @@ export function DepartmentDistributionChart() {
             </svg>
             <div className="absolute flex flex-col items-center justify-center text-center">
               <span className="text-xl font-extrabold text-slate-900 dark:text-slate-100">3,000</span>
-              <span className="text-[10px] text-slate-400 font-semibold">মোট</span>
+              <span className="text-[10px] text-slate-400 font-semibold">Total</span>
             </div>
           </div>
 
@@ -43,7 +43,7 @@ export function DepartmentDistributionChart() {
                 <div className="flex items-center space-x-2">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: dept.color }} />
                   <span className="font-medium text-slate-700 dark:text-slate-300">
-                    {dept.name} ({dept.nameEn})
+                    {dept.name}
                   </span>
                 </div>
                 <span className="font-bold text-slate-900 dark:text-slate-100">
@@ -58,7 +58,7 @@ export function DepartmentDistributionChart() {
           href="/reports"
           className="block text-center text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400 mt-3"
         >
-          বিস্তারিত দেখুন -&gt;
+          View Full Breakdown -&gt;
         </Link>
       </CardContent>
     </Card>
