@@ -1,68 +1,85 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { UploadCloud, UserPlus, Cpu, FileText, Download } from "lucide-react";
-import Link from "next/link";
+import { UploadCloud, UserPlus, Activity } from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
 
 export function ActivityFeed() {
-  const activities = [
-    {
-      icon: UploadCloud,
-      color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
-      text: "CV file Rahim_Hasan_CV.pdf successfully processed",
-      timestamp: "02-05-2024, 10:30 AM",
-    },
-    {
-      icon: UserPlus,
-      color: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
-      text: "New employee profile created: Md. Salim Uddin",
-      timestamp: "02-05-2024, 09:20 AM",
-    },
-    {
-      icon: Cpu,
-      color: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
-      text: "120 CVs currently under AI processing",
-      timestamp: "02-05-2024, 09:00 AM",
-    },
-    {
-      icon: FileText,
-      color: "bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400",
-      text: "CV file Fahima_Akter_CV.pdf successfully processed",
-      timestamp: "02-05-2024, 08:45 AM",
-    },
-    {
-      icon: Download,
-      color: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400",
-      text: "Monthly employee report exported",
-      timestamp: "02-05-2024, 08:30 AM",
-    },
-  ];
+  const [activities, setActivities] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      const supabase = createClient();
+      try {
+        const { data, error } = await supabase
+          .from("employees")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (!error && data && data.length > 0) {
+          const formatted = data.map((emp: any) => ({
+            icon: emp.status === "active" ? UserPlus : UploadCloud,
+            color: emp.status === "active"
+              ? "bg-emerald-500/10 text-emerald-400"
+              : "bg-amber-500/10 text-amber-400",
+            text: `Candidate profile record saved: ${emp.name}`,
+            timestamp: emp.created_at ? new Date(emp.created_at).toLocaleString() : "Recently",
+          }));
+          setActivities(formatted);
+        }
+      } catch (e) {
+        console.warn("Could not fetch activities:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, []);
 
   return (
-    <Card className="h-full flex flex-col justify-between border-slate-200/80 dark:border-slate-800">
+    <Card className="h-full flex flex-col justify-between border-[#e6dfd8] dark:border-[#2e2c28] bg-card text-card-foreground">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
-          Recent Activities
+        <CardTitle className="text-base font-bold text-foreground">
+          Recent Audit Activities
         </CardTitle>
-        <Link href="#" className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">
-          View All -&gt;
-        </Link>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {activities.map((act, index) => {
-            const Icon = act.icon;
-            return (
-              <div key={index} className="flex items-start space-x-3 text-xs">
-                <div className={`p-2 rounded-xl shrink-0 ${act.color}`}>
-                  <Icon className="h-4 w-4" />
+        {loading ? (
+          <div className="py-12 text-center text-xs text-muted-foreground animate-pulse">
+            Loading activity log...
+          </div>
+        ) : activities.length === 0 ? (
+          <div className="py-10 text-center space-y-3">
+            <div className="mx-auto h-10 w-10 rounded-full bg-muted/60 flex items-center justify-center text-muted-foreground">
+              <Activity className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-foreground">No Audit Logs Yet</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">System activity and CV extractions will be logged here.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {activities.map((act, index) => {
+              const Icon = act.icon;
+              return (
+                <div key={index} className="flex items-start space-x-3 text-xs">
+                  <div className={`p-2 rounded-xl shrink-0 ${act.color}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{act.text}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">{act.timestamp}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 dark:text-slate-200 truncate">{act.text}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{act.timestamp}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
