@@ -75,16 +75,16 @@ export function EmployeeList() {
     {
       header: "Employee ID",
       accessorKey: "id",
-      cell: (item) => <span className="font-mono text-xs font-bold text-[#533afd] dark:text-blue-400">{item.id}</span>,
+      cell: (item) => <span className="font-mono text-sm font-bold text-[#0066ff] dark:text-blue-400">{item.id}</span>,
     },
     {
       header: "Employee Name",
       cell: (item) => (
         <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setSelectedEmployee(item)}>
-          <Avatar name={item.name} size="sm" />
+          <Avatar name={item.name} size="md" />
           <div>
-            <p className="font-bold text-slate-900 dark:text-slate-100 hover:text-[#533afd] transition-colors">{item.name}</p>
-            <p className="text-[11px] text-slate-400">{item.email}</p>
+            <p className="font-bold text-base text-slate-900 dark:text-slate-100 hover:text-[#0066ff] transition-colors">{item.name}</p>
+            <p className="text-xs text-slate-500 font-medium">{item.email}</p>
           </div>
         </div>
       ),
@@ -92,12 +92,12 @@ export function EmployeeList() {
     {
       header: "Department",
       accessorKey: "department",
-      cell: (item) => <span className="font-semibold text-slate-700 dark:text-slate-300">{item.department}</span>,
+      cell: (item) => <span className="font-bold text-sm text-slate-800 dark:text-slate-200">{item.department}</span>,
     },
     {
       header: "Designation",
       accessorKey: "designation",
-      cell: (item) => <span className="text-slate-600 dark:text-slate-400">{item.designation}</span>,
+      cell: (item) => <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">{item.designation}</span>,
     },
     {
       header: "Status",
@@ -119,7 +119,7 @@ export function EmployeeList() {
     {
       header: "Joining Date",
       accessorKey: "joiningDate",
-      cell: (item) => <span className="text-slate-500 font-mono text-xs">{item.joiningDate}</span>,
+      cell: (item) => <span className="text-slate-600 dark:text-slate-400 font-mono text-sm">{item.joiningDate}</span>,
     },
     {
       header: "Actions",
@@ -129,20 +129,20 @@ export function EmployeeList() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-slate-500 hover:text-[#533afd]"
+              className="h-9 w-9 text-slate-500 hover:text-[#0066ff]"
               title="Preview Original PDF & Complete CV"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-5 w-5" />
             </Button>
           </Link>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleExportCSV}
-            className="h-8 w-8 text-slate-500 hover:text-emerald-600"
+            className="h-9 w-9 text-slate-500 hover:text-emerald-600"
             title="Export Records"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-5 w-5" />
           </Button>
         </div>
       ),

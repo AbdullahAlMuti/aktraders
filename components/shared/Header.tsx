@@ -59,10 +59,10 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-center space-x-2 text-xs font-medium">
+        <div className="flex items-center space-x-2 text-sm font-medium">
           <span className="text-slate-400 dark:text-slate-500">AK Traders</span>
           <span className="text-slate-300 dark:text-slate-700">/</span>
-          <span className="font-bold text-slate-900 dark:text-white">{title}</span>
+          <span className="font-extrabold text-slate-900 dark:text-white text-base">{title}</span>
         </div>
       </div>
 
@@ -75,18 +75,18 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => searchQuery.trim().length > 0 && setShowSearchResults(true)}
             placeholder="Search candidate, mobile, email..."
-            className="w-full rounded-xl border border-slate-200 bg-[#f4f7fe] py-2 pl-4 pr-10 text-xs text-slate-900 placeholder-slate-400 focus:border-[#0066ff] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066ff]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 transition-all"
+            className="w-full rounded-xl border border-slate-200 bg-[#f4f7fe] py-2 pl-4 pr-10 text-sm text-slate-900 placeholder-slate-400 focus:border-[#0066ff] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0066ff]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-500 transition-all font-medium"
           />
           {searchQuery ? (
             <button
               onClick={() => setSearchQuery("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" />
             </button>
           ) : (
             <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <Search className="h-4 w-4" />
+              <Search className="h-4.5 w-4.5" />
             </div>
           )}
         </div>
@@ -95,13 +95,13 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
         {showSearchResults && (
           <div className="absolute left-0 right-0 mt-2 rounded-xl border border-slate-200 bg-white py-2 shadow-2xl dark:border-slate-800 dark:bg-[#111c38] z-50 max-h-96 overflow-y-auto">
             {isSearching ? (
-              <div className="flex items-center justify-center py-6 text-xs text-slate-400">
+              <div className="flex items-center justify-center py-6 text-sm text-slate-400">
                 <Loader2 className="h-4 w-4 animate-spin mr-2 text-[#0066ff]" />
                 <span>Searching database...</span>
               </div>
             ) : searchResults.length > 0 ? (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                <div className="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="px-4 py-1.5 text-xs font-extrabold uppercase tracking-wider text-slate-400">
                   Matching Candidates ({searchResults.length})
                 </div>
                 {searchResults.map((item) => (
@@ -112,16 +112,16 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
                     className="flex items-center justify-between px-4 py-3 hover:bg-blue-50/50 dark:hover:bg-slate-800/60 transition-colors group"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0066ff] transition-colors truncate">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-[#0066ff] transition-colors truncate">
                         {item.candidateName}
                       </p>
-                      <div className="flex items-center space-x-3 text-[11px] text-slate-500 mt-0.5 font-mono">
+                      <div className="flex items-center space-x-3 text-xs text-slate-500 mt-0.5 font-mono">
                         <span className="flex items-center gap-1">
-                          <FileText className="h-3 w-3 text-[#0066ff]" />
+                          <FileText className="h-3.5 w-3.5 text-[#0066ff]" />
                           {item.originalFileName}
                         </span>
                         <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
+                          <Calendar className="h-3.5 w-3.5" />
                           {new Date(item.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                         </span>
                       </div>
@@ -131,7 +131,7 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
                 ))}
               </div>
             ) : (
-              <div className="px-4 py-6 text-center text-xs text-slate-500">
+              <div className="px-4 py-6 text-center text-sm text-slate-500">
                 No candidate found matching &quot;<span className="font-semibold text-slate-700 dark:text-slate-300">{searchQuery}</span>&quot;
               </div>
             )}
@@ -147,7 +147,7 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
             0
           </span>
         </button>
@@ -162,24 +162,24 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
           >
             <Avatar name={user?.name || "Admin User"} size="sm" />
             <div className="hidden sm:flex flex-col text-left">
-              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{user?.name || "Admin User"}</span>
-              <span className="text-[10px] text-[#0066ff] dark:text-blue-400 font-semibold">Administrator</span>
+              <span className="text-sm font-extrabold text-slate-900 dark:text-slate-100">{user?.name || "Admin User"}</span>
+              <span className="text-xs text-[#0066ff] dark:text-blue-400 font-bold">Administrator</span>
             </div>
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-slate-400" />
           </button>
 
           {userMenuOpen && (
-            <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl dark:border-slate-800 dark:bg-[#111c38] z-50">
+            <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white py-1.5 shadow-xl dark:border-slate-800 dark:bg-[#111c38] z-50">
               <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{user?.name || "Admin User"}</p>
-                <p className="text-[10px] text-slate-500 truncate">{user?.email || "admin@aktraders.com"}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email || "admin@aktraders.com"}</p>
               </div>
-              <Link href="/employee-profile" className="block px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/60">
+              <Link href="/employee-profile" className="block px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/60">
                 View Profile
               </Link>
               <button
                 onClick={logout}
-                className="w-full text-left px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
               >
                 Logout
               </button>
