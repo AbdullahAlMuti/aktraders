@@ -192,7 +192,7 @@ export function LoginForm() {
           <Input
             label="Full Name"
             type="text"
-            placeholder="e.g. Md. Rahim Hasan"
+            placeholder="Enter full name"
             leftIcon={<UserIcon className="h-4 w-4" />}
             error={signUpForm.formState.errors.name?.message}
             {...signUpForm.register("name")}

@@ -16,34 +16,34 @@ interface ReviewStepProps {
 export function ReviewStep({ initialData, onNext, onBack }: ReviewStepProps) {
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
-      fullName: initialData?.fullName || "Candidate Name",
-      designation: initialData?.designation || "Executive Officer",
-      department: initialData?.department || "Sales",
-      email: initialData?.email || "candidate@aktraders.com",
-      phone: initialData?.phone || "01700000000",
-      nidNo: initialData?.nidNo || "1993123456789012",
-      dob: initialData?.dob || "1995-06-15",
-      degree: initialData?.degree || "Bachelor Degree",
-      institution: initialData?.institution || "Dhaka University",
-      cvFileName: initialData?.cvFileName || "Uploaded_CV.pdf",
-      cvFileSize: initialData?.cvFileSize || "1.5 MB",
+      fullName: initialData?.fullName || "",
+      designation: initialData?.designation || "",
+      department: initialData?.department || "General",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      nidNo: initialData?.nidNo || "",
+      dob: initialData?.dob || "",
+      degree: initialData?.degree || "",
+      institution: initialData?.institution || "",
+      cvFileName: initialData?.cvFileName || "",
+      cvFileSize: initialData?.cvFileSize || "",
     },
   });
 
   useEffect(() => {
     if (initialData) {
       reset({
-        fullName: initialData.fullName || "Candidate Name",
-        designation: initialData.designation || "Executive Officer",
-        department: initialData.department || "Sales",
-        email: initialData.email || "candidate@aktraders.com",
-        phone: initialData.phone || "01700000000",
-        nidNo: initialData.nidNo || "1993123456789012",
-        dob: initialData.dob || "1995-06-15",
-        degree: initialData.degree || "Bachelor Degree",
-        institution: initialData.institution || "Dhaka University",
-        cvFileName: initialData.cvFileName || "Uploaded_CV.pdf",
-        cvFileSize: initialData.cvFileSize || "1.5 MB",
+        fullName: initialData.fullName || "",
+        designation: initialData.designation || "",
+        department: initialData.department || "General",
+        email: initialData.email || "",
+        phone: initialData.phone || "",
+        nidNo: initialData.nidNo || "",
+        dob: initialData.dob || "",
+        degree: initialData.degree || "",
+        institution: initialData.institution || "",
+        cvFileName: initialData.cvFileName || "",
+        cvFileSize: initialData.cvFileSize || "",
       });
     }
   }, [initialData, reset]);
@@ -56,13 +56,13 @@ export function ReviewStep({ initialData, onNext, onBack }: ReviewStepProps) {
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-6">
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+    <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-[#0c0d0e] space-y-6">
+      <div className="flex items-center justify-between border-b border-neutral-100 pb-3 dark:border-neutral-800">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
+          <h3 className="text-base font-bold text-neutral-900 dark:text-white">
             Review & Edit Extracted Data
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-neutral-500">
             Verify and adjust the fields below before saving to the employee database.
           </p>
         </div>
@@ -74,18 +74,19 @@ export function ReviewStep({ initialData, onNext, onBack }: ReviewStepProps) {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Personal Details */}
         <div className="space-y-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[#cc785c]">
             1. Personal Information
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input label="Full Name" {...register("fullName")} />
-            <Input label="Email Address" type="email" {...register("email")} />
-            <Input label="Phone Number" {...register("phone")} />
-            <Input label="NID Number" {...register("nidNo")} />
+            <Input label="Full Name" placeholder="Full name" {...register("fullName")} />
+            <Input label="Email Address" type="email" placeholder="Email address" {...register("email")} />
+            <Input label="Phone Number" placeholder="Phone number" {...register("phone")} />
+            <Input label="NID Number" placeholder="NID number" {...register("nidNo")} />
             <Input label="Date of Birth" type="date" {...register("dob")} />
             <Select
               label="Department"
               options={[
+                { label: "General", value: "General" },
                 { label: "Sales", value: "Sales" },
                 { label: "Operations", value: "Operations" },
                 { label: "HR", value: "HR" },
@@ -98,23 +99,23 @@ export function ReviewStep({ initialData, onNext, onBack }: ReviewStepProps) {
         </div>
 
         {/* Professional & Academic */}
-        <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
+        <div className="space-y-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[#cc785c]">
             2. Professional & Academic Information
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input label="Designation" {...register("designation")} />
-            <Input label="Highest Degree" {...register("degree")} />
-            <Input label="Institution" {...register("institution")} />
+            <Input label="Designation" placeholder="Designation" {...register("designation")} />
+            <Input label="Highest Degree" placeholder="Degree" {...register("degree")} />
+            <Input label="Institution" placeholder="Institution name" {...register("institution")} />
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex justify-between pt-4 border-t border-neutral-100 dark:border-neutral-800">
           <Button type="button" variant="outline" onClick={onBack}>
             Back
           </Button>
-          <Button type="submit" className="bg-[#1657FF] hover:bg-blue-700 font-semibold" rightIcon={<ArrowRight className="h-4 w-4" />}>
+          <Button type="submit" className="bg-[#cc785c] hover:bg-[#a9583e] font-semibold text-white" rightIcon={<ArrowRight className="h-4 w-4" />}>
             Save Record to Database
           </Button>
         </div>

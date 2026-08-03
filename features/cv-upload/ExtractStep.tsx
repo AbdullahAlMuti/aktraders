@@ -238,7 +238,7 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
                         {extractedData.fullName || file?.name}
                       </h4>
                       <p className="text-blue-600 dark:text-blue-400 font-semibold text-xs mt-0.5">
-                        {extractedData.designation || "Senior Executive"} • {extractedData.department || "Operations"}
+                        {extractedData.designation || "Candidate"} • {extractedData.department || "General"}
                       </p>
                       <div className="flex flex-wrap items-center gap-3 mt-2 text-slate-600 dark:text-slate-400 text-[11px]">
                         <span className="flex items-center space-x-1">

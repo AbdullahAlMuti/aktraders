@@ -24,7 +24,7 @@ export function SaveStep({ savedEmployee, onReset }: SaveStepProps) {
         <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
           Profile for <strong className="text-slate-900 dark:text-slate-100">{savedEmployee?.name || "New Employee"}</strong> saved under Employee ID:{" "}
           <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-            {savedEmployee?.id || "EMP-1006"}
+            {savedEmployee?.id || ""}
           </span>
         </p>
 

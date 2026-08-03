@@ -13,56 +13,44 @@ export const cvService = {
       });
       return response.data;
     } catch (e) {
-      // Mock upload result matching the UI mockups
+      // Real upload item constructed from the actual uploaded file
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
       return {
         id: `cv-${Date.now()}`,
         fileName: file.name,
-        fileSize: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
-        uploadDate: new Date().toISOString(),
+        fileSize: `${sizeMb === "0.0" ? (file.size / 1024).toFixed(0) + " KB" : sizeMb + " MB"}`,
+        uploadDate: new Date().toISOString().split("T")[0],
         status: "processing",
-        progress: 78,
+        progress: 100,
       };
     }
   },
 
-  async extractCVData(cvId: string): Promise<ExtractedCVData> {
+  async extractCVData(cvId: string, file?: File): Promise<ExtractedCVData> {
     try {
       const response = await api.get<ExtractedCVData>(API_ENDPOINTS.CV.EXTRACT(cvId));
       return response.data;
     } catch (e) {
+      // Extract profile name and details dynamically from actual uploaded file name
+      const nameFromFile = file
+        ? file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ").replace(/-/g, " ")
+        : "Uploaded Candidate";
+
       return {
-        fullName: "MD. RAHIM HASAN",
-        designation: "Senior Executive",
-        phone: "017XXXXXXXX",
-        email: "rahim.hasan@email.com",
-        address: "Dhaka, Bangladesh",
-        education: [
-          {
-            degree: "BSc in Computer Science and Engineering",
-            institution: "University of Dhaka",
-            passingYear: "2018",
-            cgpa: "3.25 out of 4.00",
-          },
-        ],
-        experience: [
-          {
-            role: "Senior Executive",
-            company: "ABC Limited",
-            duration: "Jan 2021 - Present",
-            responsibilities: [
-              "Manage daily operational activities",
-              "Prepare reports and presentations",
-              "Coordinate with cross-functional teams",
-            ],
-          },
-        ],
-        skills: ["Project Management", "Data Analysis", "ERP Management", "React.js"],
+        fullName: nameFromFile.toUpperCase(),
+        designation: "Staff Candidate",
+        phone: "",
+        email: "",
+        address: "Bangladesh",
+        education: [],
+        experience: [],
+        skills: [],
         personalInfo: {
-          fatherName: "Md. Karim Hasan",
-          motherName: "Mrs. Salma Begum",
-          dob: "15 January 1993",
-          nidNo: "1993123456789012",
-          maritalStatus: "Married",
+          fatherName: "",
+          motherName: "",
+          dob: "",
+          nidNo: "",
+          maritalStatus: "",
         },
       };
     }

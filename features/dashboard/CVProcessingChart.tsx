@@ -1,32 +1,40 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { reportsService } from "@/services/reports.service";
 
 export function CVProcessingChart() {
   const [selectedYear, setSelectedYear] = useState("2026");
+  const [monthlyData, setMonthlyData] = useState<Array<{ month: string; val: number }>>([
+    { month: "Jan", val: 0 },
+    { month: "Feb", val: 0 },
+    { month: "Mar", val: 0 },
+    { month: "Apr", val: 0 },
+    { month: "May", val: 0 },
+    { month: "Jun", val: 0 },
+    { month: "Jul", val: 0 },
+    { month: "Aug", val: 0 },
+    { month: "Sep", val: 0 },
+    { month: "Oct", val: 0 },
+    { month: "Nov", val: 0 },
+    { month: "Dec", val: 0 },
+  ]);
 
-  const points = [
-    { month: "Jan", val: 240 },
-    { month: "Feb", val: 300 },
-    { month: "Mar", val: 410 },
-    { month: "Apr", val: 390 },
-    { month: "May", val: 460 },
-    { month: "Jun", val: 620 },
-    { month: "Jul", val: 820 },
-    { month: "Aug", val: 590 },
-    { month: "Sep", val: 400 },
-    { month: "Oct", val: 480 },
-    { month: "Nov", val: 520 },
-    { month: "Dec", val: 310 },
-  ];
+  useEffect(() => {
+    reportsService.getDashboardSummary().then((summary) => {
+      if (summary && summary.monthlyTrend && summary.monthlyTrend.length > 0) {
+        setMonthlyData(summary.monthlyTrend.map((m) => ({ month: m.month, val: m.count })));
+      }
+    });
+  }, [selectedYear]);
 
-  const maxVal = 1000;
+  const maxVal = Math.max(...monthlyData.map((p) => p.val), 10);
   const svgWidth = 600;
   const svgHeight = 200;
 
-  const coords = points.map((p, index) => {
-    const x = (index / (points.length - 1)) * (svgWidth - 40) + 20;
+  const coords = monthlyData.map((p, index) => {
+    const x = (index / (monthlyData.length - 1)) * (svgWidth - 40) + 20;
     const y = svgHeight - (p.val / maxVal) * (svgHeight - 40) - 20;
     return { x, y, ...p };
   });
@@ -36,15 +44,15 @@ export function CVProcessingChart() {
   }, "");
 
   return (
-    <Card className="h-full flex flex-col justify-between border-slate-200/80 dark:border-slate-800">
+    <Card className="h-full flex flex-col justify-between border-[#e6dfd8] dark:border-[#2e2c28]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-bold text-slate-900 dark:text-slate-100">
+        <CardTitle className="text-base font-bold text-neutral-900 dark:text-white">
           Monthly CV Processing Trend
         </CardTitle>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
-          className="rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          className="rounded-md border border-[#e6dfd8] bg-transparent px-2.5 py-1 text-xs font-semibold text-neutral-700 dark:border-[#2e2c28] dark:text-neutral-200"
         >
           <option value="2026">This Year (2026)</option>
           <option value="2025">2025</option>
@@ -53,12 +61,12 @@ export function CVProcessingChart() {
       <CardContent>
         <div className="relative w-full overflow-x-auto pt-4">
           <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-48 overflow-visible">
-            {[0, 250, 500, 750, 1000].map((gridVal) => {
+            {[0, Math.round(maxVal / 4), Math.round(maxVal / 2), Math.round((maxVal * 3) / 4), maxVal].map((gridVal, i) => {
               const y = svgHeight - (gridVal / maxVal) * (svgHeight - 40) - 20;
               return (
-                <g key={gridVal}>
-                  <line x1="0" y1={y} x2={svgWidth} y2={y} className="stroke-slate-100 dark:stroke-slate-800" strokeDasharray="3 3" />
-                  <text x="0" y={y - 4} className="text-[9px] fill-slate-400">
+                <g key={i}>
+                  <line x1="0" y1={y} x2={svgWidth} y2={y} className="stroke-neutral-200 dark:stroke-neutral-800" strokeDasharray="3 3" />
+                  <text x="0" y={y - 4} className="text-[9px] fill-neutral-400">
                     {gridVal}
                   </text>
                 </g>
@@ -66,26 +74,26 @@ export function CVProcessingChart() {
             })}
 
             <defs>
-              <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563eb" stopOpacity="0.2" />
-                <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
+              <linearGradient id="coralGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#cc785c" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#cc785c" stopOpacity="0.0" />
               </linearGradient>
             </defs>
             <path
               d={`${pathD} L ${coords[coords.length - 1].x} ${svgHeight - 20} L ${coords[0].x} ${svgHeight - 20} Z`}
-              fill="url(#blueGradient)"
+              fill="url(#coralGradient)"
             />
-            <path d={pathD} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={pathD} fill="none" stroke="#cc785c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
             {coords.map((c, i) => (
-              <g key={i} className="group cursor-pointer">
-                <circle cx={c.x} cy={c.y} r="4" className="fill-blue-600 stroke-white stroke-2 hover:r-6 transition-all" />
+              <g key={i} className="group">
+                <circle cx={c.x} cy={c.y} r="3.5" className="fill-[#cc785c] stroke-white dark:stroke-[#181715] stroke-2" />
               </g>
             ))}
           </svg>
 
-          <div className="flex justify-between px-2 text-[10px] text-slate-500 mt-2">
-            {points.map((p, i) => (
+          <div className="flex justify-between px-2 text-[10px] text-neutral-400 mt-2">
+            {monthlyData.map((p, i) => (
               <span key={i}>{p.month}</span>
             ))}
           </div>

@@ -5,11 +5,17 @@ import { createClient } from "@/utils/supabase/client";
 export const employeeService = {
   async getEmployees(params: EmployeeFilterState & { page?: number; limit?: number }): Promise<PaginatedResponse<Employee>> {
     const supabase = createClient();
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
     try {
       let query = supabase.from("employees").select("*", { count: "exact" });
 
-      if (params.search) {
-        query = query.or(`name.ilike.%${params.search}%,id.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+      if (params.search && params.search.trim() !== "") {
+        const s = params.search.trim();
+        query = query.or(`name.ilike.%${s}%,id.ilike.%${s}%,email.ilike.%${s}%`);
       }
       if (params.department && params.department !== "all") {
         query = query.ilike("department", params.department);
@@ -17,11 +23,6 @@ export const employeeService = {
       if (params.status && (params.status as string) !== "all") {
         query = query.eq("status", params.status);
       }
-
-      const page = params.page || 1;
-      const limit = params.limit || 10;
-      const from = (page - 1) * limit;
-      const to = from + limit - 1;
 
       query = query.range(from, to).order("created_at", { ascending: false });
 
@@ -33,37 +34,40 @@ export const employeeService = {
           name: item.name,
           email: item.email,
           phone: item.phone || "",
-          department: item.department || "General",
-          designation: item.designation || "Staff",
+          department: item.department || "",
+          designation: item.designation || "",
           status: item.status || "active",
-          joiningDate: item.joining_date || new Date().toISOString().split("T")[0],
+          joiningDate: item.joining_date || "",
           cvFileName: item.cv_file_name,
           cvFileSize: item.cv_file_size,
           avatarUrl: item.avatar_url,
           cvData: item.cv_data,
         }));
 
+        const totalRecords = count !== null ? count : formattedEmployees.length;
+
         return {
           data: formattedEmployees,
           meta: {
-            total: count ?? formattedEmployees.length,
+            total: totalRecords,
             page,
             limit,
-            totalPages: Math.ceil((count ?? formattedEmployees.length) / limit) || 1,
+            totalPages: totalRecords > 0 ? Math.ceil(totalRecords / limit) : 0,
           },
         };
       }
     } catch (e) {
-      console.warn("Supabase query warning:", e);
+      console.error("Error fetching employees from Supabase:", e);
     }
 
+    // Return clean empty response when no records exist or query fails
     return {
       data: [],
       meta: {
         total: 0,
-        page: params.page || 1,
-        limit: params.limit || 10,
-        totalPages: 1,
+        page,
+        limit,
+        totalPages: 0,
       },
     };
   },
@@ -78,10 +82,10 @@ export const employeeService = {
           name: data.name,
           email: data.email,
           phone: data.phone || "",
-          department: data.department || "General",
-          designation: data.designation || "Staff",
+          department: data.department || "",
+          designation: data.designation || "",
           status: data.status || "active",
-          joiningDate: data.joining_date || new Date().toISOString().split("T")[0],
+          joiningDate: data.joining_date || "",
           cvFileName: data.cv_file_name,
           cvFileSize: data.cv_file_size,
           avatarUrl: data.avatar_url,
@@ -89,17 +93,17 @@ export const employeeService = {
         };
       }
     } catch (e) {
-      console.warn("Error fetching employee:", e);
+      console.error("Error fetching employee by ID:", e);
     }
     return null;
   },
 
   async createEmployee(data: Partial<Employee> & { cvData?: any }): Promise<Employee> {
     const supabase = createClient();
-    const newId = data.id || `EMP-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newId = data.id || `EMP-${Math.floor(10000 + Math.random() * 90000)}`;
     const newEmp = {
       id: newId,
-      name: data.name || "New Employee",
+      name: data.name || "Employee",
       email: data.email || "",
       phone: data.phone || "",
       department: data.department || "General",
@@ -131,7 +135,7 @@ export const employeeService = {
         };
       }
     } catch (e) {
-      console.warn("DB insert error:", e);
+      console.error("DB insert error:", e);
     }
 
     return {
@@ -143,6 +147,8 @@ export const employeeService = {
       designation: newEmp.designation,
       status: newEmp.status as any,
       joiningDate: newEmp.joining_date,
+      cvFileName: newEmp.cv_file_name || undefined,
+      cvFileSize: newEmp.cv_file_size || undefined,
       cvData: newEmp.cv_data,
     };
   },
