@@ -20,7 +20,7 @@ export function PageContainer({
   className,
 }: PageContainerProps) {
   return (
-    <div className={cn("space-y-6 pb-12", className)}>
+    <div className={cn("space-y-6 pb-12 animate-page-entry", className)}>
       {breadcrumbs && <Breadcrumb items={breadcrumbs} />}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
