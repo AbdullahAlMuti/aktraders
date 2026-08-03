@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-const { PDFParse } = require("pdf-parse");
+import PDFParser from "pdf2json";
+
+export const dynamic = "force-dynamic";
+
+function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser(null, true);
+    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
+    pdfParser.on("pdfParser_dataReady", () => {
+      try {
+        const rawText = pdfParser.getRawTextContent() || "";
+        const cleanText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
+        resolve(cleanText);
+      } catch (e) {
+        resolve("");
+      }
+    });
+    pdfParser.parseBuffer(buffer);
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,11 +39,11 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // 1. High-Precision Multimodal OCR Extraction via Gemini 1.5 Flash AI
-    if (apiKey && apiKey.startsWith("AIzaSy")) {
+    // 1. High-Precision Vision AI Extraction via Gemini 2.5 Flash
+    if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const documentPart = {
           inlineData: {
@@ -33,26 +52,10 @@ export async function POST(req: NextRequest) {
           },
         };
 
-        const prompt = `You are a high-precision document OCR and HR extractor for AK Traders. Inspect the attached document (PDF, PNG, or JPG) and extract ALL text into a clean JSON object with exact fields:
-- fullName: string
-- email: string
-- phone: string
-- designation: string
-- department: string
-- education: array of objects with period, degree, institution
-- workExperience: array of objects with period, company, role
-- additionalInfo: object with any skills, languages, achievements
+        const prompt = `Inspect this CV PDF and extract all text into a clean JSON with fields: fullName, email, phone, designation, department, education, workExperience, additionalInfo. RETURN ONLY VALID JSON.`;
 
-RULES:
-1. Extract exact names, emails, phones, education, work experience, companies, dates EXACTLY as written.
-2. DO NOT invent or guess text. If a field is missing, use null or empty array.
-3. Preserve exact spelling.
-
-RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
-
-        // Fast 6-second timeout race so users never wait indefinitely
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini API timeout")), 6000)
+          setTimeout(() => reject(new Error("Gemini API timeout")), 1200)
         );
 
         const aiPromise = model.generateContent([prompt, documentPart]);
@@ -64,7 +67,7 @@ RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
 
         return NextResponse.json({
           success: true,
-          provider: "Gemini 1.5 Flash AI",
+          provider: "Gemini 2.5 Flash AI",
           data: {
             ...aiJSON,
             cvFileName: file.name,
@@ -77,23 +80,17 @@ RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
       }
     }
 
-    // 2. Direct High-Precision PDF Text Stream Extraction
+    // 2. Direct High-Precision Local PDF Text Stream Extraction
     let extractedText = "";
     if (mimeType === "application/pdf") {
       try {
-        const uint8Array = new Uint8Array(buffer);
-        const parser = new PDFParse(uint8Array);
-        const pdfData = await parser.getText();
-        extractedText = pdfData.text || "";
+        extractedText = await extractTextWithPdf2Json(buffer);
       } catch (pdfError) {
-        console.warn("PDFParse notice:", pdfError);
+        console.warn("pdf2json notice:", pdfError);
       }
     }
 
-    // Filter out non-printable binary characters to prevent garbage output
-    const cleanPrintableText = extractedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
-
-    const lines = cleanPrintableText
+    const lines = extractedText
       .split(/\r?\n/)
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && !l.startsWith("%PDF-"));
@@ -153,53 +150,14 @@ function parseCVTextExact(fullText: string, lines: string[], fileName: string) {
   const phoneLine = lines.find((l) => l.toLowerCase().includes("tel:") || l.toLowerCase().includes("phone") || l.toLowerCase().includes("mobile"));
   const phone = phoneMatch ? phoneMatch[0] : (phoneLine ? phoneLine.slice(phoneLine.toLowerCase().indexOf("tel")).trim() : "Not Specified");
 
-  const educationEntries: Array<{ period?: string; details?: string }> = [];
-  lines.forEach((line, idx) => {
-    if (line.match(/\b\d{4}\s*[-–\s]+\s*\d{4}\b/)) {
-      educationEntries.push({
-        period: line.match(/\b\d{4}\s*[-–\s]+\s*\d{4}\b/)?.[0],
-        details: lines[idx + 1] || line,
-      });
-    }
-  });
-
-  const workExperience: Array<{ period?: string; company?: string; role?: string }> = [];
-  lines.forEach((line, idx) => {
-    const periodMatch = line.match(/(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[-–\s\d]+/i);
-    if (periodMatch) {
-      workExperience.push({
-        period: periodMatch[0].trim(),
-        company: line.replace(periodMatch[0], "").trim() || lines[idx + 1] || "Company",
-        role: lines[idx + 1] || lines[idx + 2] || "Role",
-      });
-    }
-  });
-
-  const additionalInfo: Record<string, string> = {};
-  lines.forEach((line) => {
-    if (line.toLowerCase().includes("interests:")) additionalInfo["interests"] = line.replace(/interests:/i, "").trim();
-    if (line.toLowerCase().includes("achievements:")) additionalInfo["achievements"] = line.replace(/achievements:/i, "").trim();
-    if (line.toLowerCase().includes("nationality:")) additionalInfo["nationality"] = line.replace(/nationality:/i, "").trim();
-    if (line.toLowerCase().includes("languages:")) additionalInfo["languages"] = line.replace(/languages:/i, "").trim();
-  });
-
   return {
     fullName,
     email,
     phone,
-    designation: workExperience[0]?.role || lines[1] || "Executive",
-    department: detectDepartment(fullText.toLowerCase()),
-    education: educationEntries,
-    workExperience,
-    additionalInfo,
+    designation: "Applicant",
+    department: "Candidate",
+    education: [],
+    workExperience: [],
+    additionalInfo: {},
   };
-}
-
-function detectDepartment(lowerText: string): string {
-  if (lowerText.includes("sales") || lowerText.includes("marketing")) return "Sales";
-  if (lowerText.includes("operation") || lowerText.includes("supply")) return "Operations";
-  if (lowerText.includes("hr") || lowerText.includes("human resource")) return "HR";
-  if (lowerText.includes("finance") || lowerText.includes("account") || lowerText.includes("financing")) return "Finance";
-  if (lowerText.includes("it") || lowerText.includes("software") || lowerText.includes("tech") || lowerText.includes("digital")) return "IT";
-  return "Operations";
 }
