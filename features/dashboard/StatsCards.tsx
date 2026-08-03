@@ -57,7 +57,7 @@ export function StatsCards() {
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[11px] font-medium text-[#64748d] dark:text-slate-400 tracking-tight">{stat.title}</p>
-                  <h3 className="text-2xl font-light text-[#0d253d] dark:text-slate-100 mt-1 font-tabular stripe-display-heading">{stat.value}</h3>
+                  <h3 className="text-2xl font-bold font-sans font-tabular text-neutral-900 dark:text-white mt-1.5 tracking-tight">{stat.value}</h3>
                   <p className="text-[10px] text-[#64748d] dark:text-slate-400 mt-0.5 font-normal">{stat.subtitle}</p>
                 </div>
                 <div className={`p-2.5 rounded-full ${stat.bgColor}`}>

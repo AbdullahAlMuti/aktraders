@@ -103,10 +103,10 @@
     line-height: 1.5;
   }
 
-  h1, h2, h3, .claude-serif {
-    font-family: var(--font-serif), Copernicus, Tiempos Headline, Cormorant Garamond, Georgia, serif;
-    font-weight: 400;
-    letter-spacing: -0.025em;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans), Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 }
 
