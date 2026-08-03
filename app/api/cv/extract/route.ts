@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-const pdfParse = require("pdf-parse");
+const { PDFParse } = require("pdf-parse");
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.GEMINI_API_KEY;
 
     // 1. High-Precision Multimodal OCR Extraction via Gemini 1.5 Flash AI
-    if (apiKey) {
+    if (apiKey && apiKey.startsWith("AIzaSy")) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
@@ -77,25 +77,26 @@ RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
       }
     }
 
-    // 2. Direct PDF Text Stream Extraction Fallback
+    // 2. Direct High-Precision PDF Text Stream Extraction
     let extractedText = "";
     if (mimeType === "application/pdf") {
       try {
-        const pdfData = await pdfParse(buffer);
+        const uint8Array = new Uint8Array(buffer);
+        const parser = new PDFParse(uint8Array);
+        const pdfData = await parser.getText();
         extractedText = pdfData.text || "";
       } catch (pdfError) {
-        console.warn("pdf-parse notice:", pdfError);
+        console.warn("PDFParse notice:", pdfError);
       }
     }
 
-    if (!extractedText.trim()) {
-      extractedText = buffer.toString("utf-8", 0, Math.min(buffer.length, 50000));
-    }
+    // Filter out non-printable binary characters to prevent garbage output
+    const cleanPrintableText = extractedText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
 
-    const lines = extractedText
+    const lines = cleanPrintableText
       .split(/\r?\n/)
       .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+      .filter((l) => l.length > 0 && !l.startsWith("%PDF-"));
 
     const parsedData = parseCVTextExact(extractedText, lines, file.name);
 
