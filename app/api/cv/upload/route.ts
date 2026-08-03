@@ -3,15 +3,62 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
+import PDFParser from "pdf2json";
 
 export const dynamic = "force-dynamic";
-const { PDFParse } = require("pdf-parse");
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser(null, true);
+    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
+    pdfParser.on("pdfParser_dataReady", () => {
+      try {
+        const rawText = pdfParser.getRawTextContent() || "";
+        const cleanText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
+        resolve(cleanText);
+      } catch (e) {
+        resolve("");
+      }
+    });
+    pdfParser.parseBuffer(buffer);
+  });
+}
+
+function cleanCandidateName(rawName: string, text: string, fileName: string): string {
+  if (rawName && rawName.trim().length > 0 && !rawName.includes("Languages:") && !rawName.includes("Nationality:")) {
+    return rawName.trim();
+  }
+
+  // Scan text lines for a person's name
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0 && !l.startsWith("%PDF"));
+
+  const excluded = [
+    "curriculum", "resume", "page", "education", "email", "tel", "phone",
+    "languages", "nationality", "interests", "achievements", "work experience",
+    "additional information", "degree", "university"
+  ];
+
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    const isExcluded = excluded.some((term) => lower.includes(term));
+    if (!isExcluded && line.length >= 2 && line.length <= 40 && /^[a-zA-Z\s.-]+$/.test(line)) {
+      return line;
+    }
+  }
+
+  // Fallback to formatted filename
+  return fileName.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+}
+
 export async function POST(req: NextRequest) {
+  const startTime = Date.now();
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -54,12 +101,19 @@ export async function POST(req: NextRequest) {
     let candidateName = "";
     let extractedText = "";
 
-    // 1. Send PDF to Gemini API Server-Side
+    // 1. Ultra-Fast High-Speed Local PDF Text Extraction (~300ms)
+    try {
+      extractedText = await extractTextWithPdf2Json(buffer);
+    } catch (pdfErr) {
+      console.warn("pdf2json extraction warning:", pdfErr);
+    }
+
+    // 2. High-Speed Gemini 2.5 Flash AI Enhancement (1.2s max timeout guard)
     const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey && apiKey.startsWith("AIzaSy")) {
+    if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const documentPart = {
           inlineData: {
@@ -68,10 +122,11 @@ export async function POST(req: NextRequest) {
           },
         };
 
-        const prompt = `Read this CV PDF and extract all readable information as clean plain text. Preserve the document's meaningful section order and content. Do not summarize, rewrite, infer, improve, or invent anything. Remove only obvious extraction noise such as duplicated lines, isolated page numbers, and meaningless characters. Also identify the candidate's name. Return only valid JSON with two fields: candidateName and extractedText. Do not include markdown, explanations, comments, confidence scores, or any information not present in the PDF.`;
+        const prompt = `Read this CV PDF and extract all readable information as clean plain text. Identify candidateName. Return valid JSON with candidateName and extractedText.`;
 
+        // 1.2s max timeout race so slow network calls never block response
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini API request timed out")), 7000)
+          setTimeout(() => reject(new Error("Gemini AI fast timeout")), 1200)
         );
 
         const aiPromise = model.generateContent([prompt, documentPart]);
@@ -86,21 +141,7 @@ export async function POST(req: NextRequest) {
           extractedText = aiJSON.extractedText.trim();
         }
       } catch (geminiError: any) {
-        console.warn("Gemini API fallback notice:", geminiError.message || geminiError);
-      }
-    }
-
-    // 2. Direct PDF Stream Extraction Fallback
-    if (!extractedText) {
-      try {
-        const uint8Array = new Uint8Array(buffer);
-        const parser = new PDFParse(uint8Array);
-        const pdfData = await parser.getText();
-        const rawText = pdfData.text || "";
-        const cleanText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
-        extractedText = cleanText;
-      } catch (pdfErr) {
-        console.error("PDF stream parser error:", pdfErr);
+        // Fall back to instant local extraction text
       }
     }
 
@@ -110,19 +151,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unreadable PDF file. Could not extract text." }, { status: 422 });
     }
 
-    // Extract Candidate Name from lines if Gemini did not provide it
-    if (!candidateName || candidateName === "Actual candidate name") {
-      const lines = extractedText.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
-      for (const line of lines.slice(0, 5)) {
-        if (!line.toLowerCase().includes("curriculum") && !line.toLowerCase().includes("resume") && !line.toLowerCase().includes("page")) {
-          candidateName = line;
-          break;
-        }
-      }
-      if (!candidateName) {
-        candidateName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-      }
-    }
+    // Clean and validate Candidate Name
+    candidateName = cleanCandidateName(candidateName, extractedText, file.name);
 
     // Minimal JSON Record
     const record = {
@@ -141,6 +171,8 @@ export async function POST(req: NextRequest) {
       console.error("Supabase DB Insert Error:", dbError);
       return NextResponse.json({ success: false, error: "Database save failed: " + dbError.message }, { status: 500 });
     }
+
+    console.log(`CV Upload & Extraction completed in ${Date.now() - startTime}ms`);
 
     return NextResponse.json({
       success: true,

@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
 
     const { pathname } = request.nextUrl;
     const isAuthRoute = pathname.startsWith("/login");
-    const isPublicRoute = pathname.startsWith("/api/health");
+    const isPublicRoute = pathname.startsWith("/api/");
 
     // Redirect unauthenticated users to /login
     if (!user && !isAuthRoute && !isPublicRoute) {

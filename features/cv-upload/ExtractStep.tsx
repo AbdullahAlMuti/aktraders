@@ -34,25 +34,15 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
     async function processUpload() {
       if (!file) return;
 
-      setStatusState("Uploading");
+      setStatusState("Extracting");
       setErrorMessage(null);
-
-      // Transition through states cleanly
-      setTimeout(() => {
-        if (isMounted) setStatusState("Extracting");
-      }, 600);
 
       const result = await cvService.uploadCV(file);
 
       if (isMounted) {
         if (result.success && result.record) {
-          setStatusState("Saving");
-          setTimeout(() => {
-            if (isMounted) {
-              setExtractedRecord(result.record!);
-              setStatusState("Completed");
-            }
-          }, 400);
+          setExtractedRecord(result.record);
+          setStatusState("Completed");
         } else {
           setStatusState("Failed");
           setErrorMessage(result.error || "Failed to process PDF CV.");
