@@ -20,11 +20,11 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // 1. High-Precision Multimodal OCR Extraction via Gemini 2.5 Flash AI
+    // 1. High-Precision Multimodal OCR Extraction via Gemini 1.5 Flash AI
     if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const documentPart = {
           inlineData: {
@@ -33,23 +33,38 @@ export async function POST(req: NextRequest) {
           },
         };
 
-        const prompt = `You are a high-precision document OCR and HR extractor for AK Traders. Inspect the attached document (PDF, PNG, or JPG) and extract ALL text and sections EXACTLY SAME TO SAME into a clean JSON object.
+        const prompt = `You are a high-precision document OCR and HR extractor for AK Traders. Inspect the attached document (PDF, PNG, or JPG) and extract ALL text into a clean JSON object with exact fields:
+- fullName: string
+- email: string
+- phone: string
+- designation: string
+- department: string
+- education: array of objects with period, degree, institution
+- workExperience: array of objects with period, company, role
+- additionalInfo: object with any skills, languages, achievements
 
 RULES:
-1. Extract exact names, emails, phones, education, work experience, companies, dates, and additional info EXACTLY as written in the document.
-2. DO NOT invent, guess, or use dummy text. If a field is missing, use null or empty array.
-3. Preserve exact spelling and text as shown in the document.
+1. Extract exact names, emails, phones, education, work experience, companies, dates EXACTLY as written.
+2. DO NOT invent or guess text. If a field is missing, use null or empty array.
+3. Preserve exact spelling.
 
 RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
 
-        const result = await model.generateContent([prompt, documentPart]);
+        // Fast 6-second timeout race so users never wait indefinitely
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Gemini API timeout")), 6000)
+        );
+
+        const aiPromise = model.generateContent([prompt, documentPart]);
+        const result: any = await Promise.race([aiPromise, timeoutPromise]);
+
         const responseText = result.response.text();
         const cleanedJSONText = responseText.replace(/```json|```/g, "").trim();
         const aiJSON = JSON.parse(cleanedJSONText);
 
         return NextResponse.json({
           success: true,
-          provider: "Gemini 2.5 Flash AI",
+          provider: "Gemini 1.5 Flash AI",
           data: {
             ...aiJSON,
             cvFileName: file.name,
@@ -58,7 +73,7 @@ RETURN ONLY VALID RAW JSON. DO NOT INCLUDE MARKDOWN BACKTICKS OR COMMENTS.`;
           },
         });
       } catch (geminiError: any) {
-        console.warn("Gemini 2.5 Flash Vision AI notice:", geminiError.message || geminiError);
+        console.warn("Gemini Vision AI notice:", geminiError.message || geminiError);
       }
     }
 
