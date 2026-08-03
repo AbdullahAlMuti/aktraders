@@ -4,91 +4,75 @@
 
 @layer base {
   :root {
-    --background: 210 10% 5%;   /* #0c0d0e Unified Dark Charcoal Canvas */
-    --foreground: 210 20% 98%;  /* #f8fafc Text */
+    --background: 220 33% 97%;   /* #f4f7fe Reference Light Canvas */
+    --foreground: 222 47% 11%;  /* #0f172a Text */
 
-    --card: 210 10% 9%;        /* #16181a Card Surface */
-    --card-foreground: 210 20% 98%;
+    --card: 0 0% 100%;          /* #ffffff Pure White Card Surface */
+    --card-foreground: 222 47% 11%;
 
-    --popover: 210 10% 5%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
+    --primary: 217 100% 50%;    /* #0066ff Electric Blue Primary */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 10% 12%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 10% 12%;
-    --muted-foreground: 210 10% 60%;
+    --muted: 220 20% 94%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 210 10% 12%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 220 20% 94%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 10% 15%;     /* #22262b Border */
-    --input: 210 10% 15%;
-    --ring: 15 52% 58%;
+    --border: 220 13% 91%;     /* #e2e8f0 Border */
+    --input: 220 13% 91%;
+    --ring: 217 100% 50%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: #0c0d0e;
-    --sidebar-foreground: #f8fafc;
-    --sidebar-primary: #cc785c;
-    --sidebar-active: #a9583e;
-
-    /* Claude Specific Design Tokens */
-    --claude-primary: #cc785c;
-    --claude-primary-active: #a9583e;
-    --claude-ink: #f8fafc;
-    --claude-canvas: #0c0d0e;
-    --claude-hairline: #22262b;
-
-    /* Apple Motion Tokens */
-    --motion-duration-fast: 150ms;
-    --motion-duration-normal: 240ms;
-    --motion-duration-slow: 360ms;
-
-    --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-    --motion-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
-    --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    --sidebar-background: #061229;
+    --sidebar-foreground: #8f9bba;
+    --sidebar-primary: #0066ff;
+    --sidebar-active: #0066ff;
   }
 
   .dark {
-    --background: 210 10% 5%;   /* #0c0d0e Unified Dark Charcoal Canvas */
-    --foreground: 210 20% 98%;  /* #f8fafc Text */
+    --background: 222 47% 7%;   /* #090d16 Deep Dark Navy Canvas */
+    --foreground: 210 40% 98%;  /* #f8fafc Text */
 
-    --card: 210 10% 9%;        /* #16181a Card Surface */
-    --card-foreground: 210 20% 98%;
+    --card: 222 40% 12%;        /* #111c38 Card Surface */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 210 10% 5%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 47% 7%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
+    --primary: 217 100% 50%;    /* #0066ff Electric Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 10% 12%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 222 30% 16%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 10% 12%;
-    --muted-foreground: 210 10% 60%;
+    --muted: 222 30% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 210 10% 12%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 222 30% 16%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 210 10% 15%;     /* #22262b */
-    --input: 210 10% 15%;
-    --ring: 15 52% 58%;
+    --border: 222 30% 18%;     /* #1d2c4d */
+    --input: 222 30% 18%;
+    --ring: 217 100% 50%;
 
-    --sidebar-background: #0c0d0e;
-    --sidebar-foreground: #f8fafc;
-    --sidebar-primary: #cc785c;
-    --sidebar-active: #a9583e;
+    --sidebar-background: #061229;
+    --sidebar-foreground: #8f9bba;
+    --sidebar-primary: #0066ff;
+    --sidebar-active: #0066ff;
   }
 }
 
@@ -107,7 +91,7 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-[#cc785c] selection:text-white;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-[#0066ff] selection:text-white;
     font-size: 1rem;
     line-height: 1.5;
   }
@@ -127,29 +111,20 @@
   }
 }
 
-/* Page Transition Animation Keyframes */
-@keyframes pageFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Sidebar Cityscape Watermark Pattern */
+.sidebar-watermark {
+  background-image: linear-gradient(to top, rgba(0, 102, 255, 0.08), transparent 70%);
 }
 
-.animate-page-entry {
-  animation: pageFadeIn 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* Card Hover Micro-Elevation */
-.apple-card-hover {
+/* Card Micro-Elevation */
+.card-elevation {
+  box-shadow: 0 2px 12px -2px rgba(0, 0, 0, 0.04), 0 1px 4px -1px rgba(0, 0, 0, 0.02);
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 @media (hover: hover) and (pointer: fine) {
-  .apple-card-hover:hover {
+  .card-elevation:hover {
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px -4px rgba(0, 102, 255, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -159,25 +134,6 @@
 }
 .apple-press-effect:active {
   transform: scale(0.98);
-}
-
-/* Claude Design System Utilities */
-.claude-card-shadow {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
-
-.claude-btn-primary {
-  border-radius: 8px;
-  background-color: #cc785c;
-  color: #ffffff;
-  font-weight: 500;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.claude-btn-primary:hover {
-  background-color: #a9583e;
-}
-.claude-btn-primary:active {
-  background-color: #87432f;
 }
 
 .font-tabular {
@@ -194,30 +150,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(142, 139, 130, 0.3);
+  background: rgba(143, 155, 186, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(142, 139, 130, 0.5);
-}
-
-/* Accessibility: Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  .animate-page-entry {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-  .apple-card-hover:hover {
-    transform: none !important;
-  }
-  .apple-press-effect:active {
-    transform: none !important;
-  }
+  background: rgba(143, 155, 186, 0.5);
 }

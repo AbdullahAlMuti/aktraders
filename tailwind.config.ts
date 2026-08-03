@@ -18,7 +18,6 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        serif: ["var(--font-serif)", "Copernicus", "Tiempos Headline", "Cormorant Garamond", "Georgia", "serif"],
         sans: ["var(--font-sans)", "Inter", "sans-serif"],
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
       },
@@ -28,25 +27,14 @@ const config: Config = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        claude: {
-          coral: "#cc785c",
-          "coral-active": "#a9583e",
-          canvas: "#faf9f5",
-          "surface-soft": "#f5f0e8",
-          "surface-card": "#efe9de",
-          ink: "#141413",
-          hairline: "#e6dfd8",
-          "dark-surface": "#181715",
-          "dark-elevated": "#252320",
-        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
-          50: "#fdf8f6",
-          100: "#f5e8e4",
-          500: "#cc785c",
-          600: "#a9583e",
-          700: "#87432f",
+          50: "#eff6ff",
+          100: "#dbeafe",
+          500: "#0066ff",
+          600: "#2563eb",
+          700: "#1d4ed8",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",

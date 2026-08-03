@@ -44,15 +44,15 @@ export function CVProcessingChart() {
   }, "");
 
   return (
-    <Card className="h-full flex flex-col justify-between border-[#e6dfd8] dark:border-[#2e2c28]">
+    <Card className="h-full flex flex-col justify-between border-slate-200/80 dark:border-slate-800 rounded-2xl bg-white dark:bg-[#111c38]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-base font-bold text-neutral-900 dark:text-white">
-          Monthly CV Processing Trend
+        <CardTitle className="text-base font-bold text-slate-900 dark:text-white">
+          Monthly Processing Trend
         </CardTitle>
         <select
           value={selectedYear}
           onChange={(e) => setSelectedYear(e.target.value)}
-          className="rounded-md border border-[#e6dfd8] bg-transparent px-2.5 py-1 text-xs font-semibold text-neutral-700 dark:border-[#2e2c28] dark:text-neutral-200"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         >
           <option value="2026">This Year (2026)</option>
           <option value="2025">2025</option>
@@ -65,8 +65,8 @@ export function CVProcessingChart() {
               const y = svgHeight - (gridVal / maxVal) * (svgHeight - 40) - 20;
               return (
                 <g key={i}>
-                  <line x1="0" y1={y} x2={svgWidth} y2={y} className="stroke-neutral-200 dark:stroke-neutral-800" strokeDasharray="3 3" />
-                  <text x="0" y={y - 4} className="text-[9px] fill-neutral-400">
+                  <line x1="0" y1={y} x2={svgWidth} y2={y} className="stroke-slate-200 dark:stroke-slate-800" strokeDasharray="3 3" />
+                  <text x="0" y={y - 4} className="text-[9px] fill-slate-400">
                     {gridVal}
                   </text>
                 </g>
@@ -74,25 +74,25 @@ export function CVProcessingChart() {
             })}
 
             <defs>
-              <linearGradient id="coralGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#cc785c" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#cc785c" stopOpacity="0.0" />
+              <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0066ff" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#0066ff" stopOpacity="0.0" />
               </linearGradient>
             </defs>
             <path
               d={`${pathD} L ${coords[coords.length - 1].x} ${svgHeight - 20} L ${coords[0].x} ${svgHeight - 20} Z`}
-              fill="url(#coralGradient)"
+              fill="url(#blueGradient)"
             />
-            <path d={pathD} fill="none" stroke="#cc785c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={pathD} fill="none" stroke="#0066ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
             {coords.map((c, i) => (
               <g key={i} className="group">
-                <circle cx={c.x} cy={c.y} r="3.5" className="fill-[#cc785c] stroke-white dark:stroke-[#181715] stroke-2" />
+                <circle cx={c.x} cy={c.y} r="3.5" className="fill-[#0066ff] stroke-white dark:stroke-[#111c38] stroke-2" />
               </g>
             ))}
           </svg>
 
-          <div className="flex justify-between px-2 text-[10px] text-neutral-400 mt-2">
+          <div className="flex justify-between px-2 text-[10px] text-slate-400 mt-2">
             {monthlyData.map((p, i) => (
               <span key={i}>{p.month}</span>
             ))}
