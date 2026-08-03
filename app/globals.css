@@ -4,86 +4,82 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 38 33% 97%; /* #faf9f5 Warm Claude Cream Canvas */
+    --foreground: 60 3% 8%;   /* #141413 Warm Ink */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 38 32% 91%;       /* #efe9de Warm Light Cream Surface Card */
+    --card-foreground: 60 3% 8%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 38 33% 97%;
+    --popover-foreground: 60 3% 8%;
 
-    --primary: 247 98% 61%; /* #533afd Stripe Electric Indigo */
-    --primary-foreground: 210 40% 98%;
+    --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 38 20% 92%;
+    --secondary-foreground: 60 3% 15%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 38 15% 90%;
+    --muted-foreground: 45 4% 41%; /* #6c6a64 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 20% 92%;
+    --accent-foreground: 60 3% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 54% 52%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 247 98% 61%;
+    --border: 38 23% 88%;     /* #e6dfd8 Warm Hairline Border */
+    --input: 38 23% 88%;
+    --ring: 15 52% 58%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: #0d253d; /* Stripe Deep Ink Navy */
-    --sidebar-foreground: #F8FAFC;
-    --sidebar-primary: #533afd;
-    --sidebar-active: #4434d4;
+    --sidebar-background: #181715; /* Claude Warm Dark Navy/Charcoal */
+    --sidebar-foreground: #faf9f5;
+    --sidebar-primary: #cc785c;
+    --sidebar-active: #a9583e;
 
-    /* Stripe Design Tokens */
-    --stripe-primary: #533afd;
-    --stripe-primary-deep: #4434d4;
-    --stripe-primary-press: #2e2b8c;
-    --stripe-ink: #0d253d;
-    --stripe-ink-secondary: #273951;
-    --stripe-ink-mute: #64748d;
-    --stripe-canvas-soft: #f6f9fc;
-    --stripe-hairline: #e3e8ee;
-    --stripe-brand-dark: #1c1e54;
+    /* Claude Specific Design Tokens */
+    --claude-primary: #cc785c;
+    --claude-primary-active: #a9583e;
+    --claude-ink: #141413;
+    --claude-canvas: #faf9f5;
+    --claude-hairline: #e6dfd8;
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
+    --background: 30 5% 9%;    /* #181715 Claude Dark Charcoal */
+    --foreground: 38 33% 97%;  /* #faf9f5 Warm Cream Text */
 
-    --card: 222 47% 7%;
-    --card-foreground: 210 40% 98%;
+    --card: 30 7% 14%;         /* #252320 Dark Elevated Card */
+    --card-foreground: 38 33% 97%;
 
-    --popover: 222 47% 7%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 30 5% 9%;
+    --popover-foreground: 38 33% 97%;
 
-    --primary: 247 98% 61%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 30 5% 16%;
+    --secondary-foreground: 38 33% 97%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 30 5% 16%;
+    --muted-foreground: 38 5% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 30 5% 16%;
+    --accent-foreground: 38 33% 97%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 38 33% 97%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 247 98% 61%;
+    --border: 30 5% 18%;       /* #2e2c28 */
+    --input: 30 5% 18%;
+    --ring: 15 52% 58%;
 
-    --sidebar-background: #071526;
-    --sidebar-foreground: #F8FAFC;
-    --sidebar-primary: #533afd;
-    --sidebar-active: #2e2b8c;
+    --sidebar-background: #121110;
+    --sidebar-foreground: #faf9f5;
+    --sidebar-primary: #cc785c;
+    --sidebar-active: #a9583e;
   }
 }
 
@@ -98,65 +94,47 @@
 
   * {
     @apply border-border;
-    font-feature-settings: "ss01" 1;
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-[#533afd] selection:text-white;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-[#cc785c] selection:text-white;
     font-size: 1rem;
     line-height: 1.5;
   }
+
+  h1, h2, h3, .claude-serif {
+    font-family: var(--font-serif), Copernicus, Tiempos Headline, Cormorant Garamond, Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+  }
 }
 
-/* Stripe Design System Utilities */
-.stripe-gradient-mesh {
-  background: radial-gradient(at 10% 20%, rgba(245, 233, 212, 0.6) 0px, transparent 50%),
-              radial-gradient(at 90% 10%, rgba(249, 107, 238, 0.4) 0px, transparent 50%),
-              radial-gradient(at 50% 50%, rgba(83, 58, 253, 0.35) 0px, transparent 60%),
-              radial-gradient(at 80% 90%, rgba(234, 34, 97, 0.3) 0px, transparent 50%),
-              linear-gradient(135deg, #f6f9fc 0%, #ffffff 100%);
+/* Claude Design System Utilities */
+.claude-card-shadow {
+  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.04), 0 6px 16px rgba(20, 20, 19, 0.03);
 }
 
-.dark .stripe-gradient-mesh {
-  background: radial-gradient(at 10% 20%, rgba(83, 58, 253, 0.25) 0px, transparent 50%),
-              radial-gradient(at 90% 10%, rgba(28, 30, 84, 0.6) 0px, transparent 50%),
-              linear-gradient(135deg, #071526 0%, #0d253d 100%);
-}
-
-.stripe-card-shadow {
-  box-shadow: 0 1px 3px rgba(0, 55, 112, 0.06), 0 8px 24px rgba(0, 55, 112, 0.04);
-}
-
-.stripe-card-shadow-lg {
-  box-shadow: 0 10px 30px -5px rgba(0, 55, 112, 0.1), 0 4px 12px rgba(0, 55, 112, 0.05);
-}
-
-.stripe-btn-pill {
-  border-radius: 9999px;
-  background-color: #533afd;
+.claude-btn-primary {
+  border-radius: 8px;
+  background-color: #cc785c;
   color: #ffffff;
   font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.stripe-btn-pill:hover {
-  background-color: #4434d4;
+.claude-btn-primary:hover {
+  background-color: #a9583e;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(83, 58, 253, 0.3);
+  box-shadow: 0 4px 12px rgba(204, 120, 92, 0.25);
 }
-.stripe-btn-pill:active {
-  background-color: #2e2b8c;
+.claude-btn-primary:active {
+  background-color: #87432f;
   transform: translateY(0);
 }
 
 .font-tabular {
   font-feature-settings: "tnum" 1;
   letter-spacing: -0.02em;
-}
-
-.stripe-display-heading {
-  font-weight: 300;
-  letter-spacing: -0.035em;
 }
 
 /* Custom Scrollbar */
@@ -168,9 +146,9 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
+  background: rgba(142, 139, 130, 0.3);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(142, 139, 130, 0.5);
 }

@@ -4,23 +4,23 @@ import { cn } from "@/utils/cn";
 import { Loader2 } from "lucide-react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-full text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#533afd] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#cc785c] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        default: "bg-[#533afd] text-white hover:bg-[#4434d4] shadow-sm shadow-[#533afd]/20 hover:shadow-md hover:shadow-[#533afd]/30",
-        primary: "bg-[#533afd] text-white hover:bg-[#4434d4] shadow-sm shadow-[#533afd]/20 hover:shadow-md hover:shadow-[#533afd]/30",
-        secondary: "bg-[#f6f9fc] text-[#0d253d] hover:bg-[#e3e8ee] border border-[#e3e8ee] dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:border-slate-700",
-        outline: "border border-[#a8c3de]/80 bg-transparent text-[#0d253d] hover:bg-[#f6f9fc] hover:border-[#533afd] dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800",
-        destructive: "bg-[#ea2261] text-white hover:bg-rose-700 shadow-sm",
-        ghost: "hover:bg-[#f6f9fc] text-[#273951] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-        link: "text-[#533afd] underline-offset-4 hover:underline dark:text-blue-400 p-0 h-auto",
+        default: "bg-[#cc785c] text-white hover:bg-[#a9583e] shadow-xs hover:shadow-sm",
+        primary: "bg-[#cc785c] text-white hover:bg-[#a9583e] shadow-xs hover:shadow-sm",
+        secondary: "bg-[#efe9de] text-[#141413] hover:bg-[#e6dfd8] border border-[#e6dfd8] dark:bg-[#252320] dark:text-[#faf9f5] dark:hover:bg-[#2e2c28] dark:border-[#2e2c28]",
+        outline: "border border-[#e6dfd8] bg-transparent text-[#141413] hover:bg-[#efe9de] hover:border-[#cc785c] dark:border-[#2e2c28] dark:text-[#faf9f5] dark:hover:bg-[#252320]",
+        destructive: "bg-[#c64545] text-white hover:bg-[#a53636] shadow-xs",
+        ghost: "hover:bg-[#efe9de] text-[#3d3d3a] dark:text-[#faf9f5] dark:hover:bg-[#252320]",
+        link: "text-[#cc785c] underline-offset-4 hover:underline p-0 h-auto",
       },
       size: {
         default: "h-9 px-4 py-2 text-xs",
-        sm: "h-7 rounded-full px-3 text-[11px]",
-        lg: "h-11 rounded-full px-6 text-sm",
-        icon: "h-8 w-8 rounded-full p-0",
+        sm: "h-7 rounded-md px-3 text-[11px]",
+        lg: "h-11 rounded-lg px-6 text-sm",
+        icon: "h-8 w-8 rounded-md p-0",
       },
     },
     defaultVariants: {

@@ -32,25 +32,23 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-40 flex flex-col bg-white dark:bg-[#0c0d0e] text-neutral-900 dark:text-neutral-100 transition-all duration-200 border-r border-neutral-200/80 dark:border-neutral-800/80 select-none",
+        "fixed inset-y-0 left-0 z-40 flex flex-col bg-[#faf9f5] dark:bg-[#181715] text-[#141413] dark:text-[#faf9f5] transition-all duration-200 border-r border-[#e6dfd8] dark:border-[#2e2c28] select-none",
         sidebarOpen ? "w-60 translate-x-0" : "w-16 -translate-x-full md:translate-x-0"
       )}
     >
-      {/* 1. Linear Header: Company Dropdown & Action Icons */}
-      <div className="flex h-12 items-center justify-between px-3 border-b border-neutral-100 dark:border-neutral-800/60">
+      {/* 1. Header: Company Dropdown & Action Icons */}
+      <div className="flex h-12 items-center justify-between px-3 border-b border-[#e6dfd8] dark:border-[#2e2c28]">
         <Link href="/" className="flex items-center space-x-2 overflow-hidden group">
-          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-extrabold text-[11px] font-mono">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#cc785c] text-white font-extrabold text-[11px] font-mono">
             AK
           </div>
           {sidebarOpen && (
-            <div className="flex items-center space-x-1 text-xs font-semibold text-neutral-900 dark:text-neutral-100">
+            <div className="flex items-center space-x-1 text-xs font-semibold text-[#141413] dark:text-[#faf9f5]">
               <span className="truncate">AK Traders</span>
-              <ChevronDown className="h-3.5 w-3.5 text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-200 transition-colors" />
+              <ChevronDown className="h-3.5 w-3.5 text-[#8e8b82] group-hover:text-[#cc785c] transition-colors" />
             </div>
           )}
         </Link>
-
-
       </div>
 
       {/* 2. Scrollable Linear Navigation Tree */}
@@ -62,8 +60,8 @@ export function Sidebar() {
             className={cn(
               "flex items-center justify-between rounded-md px-2.5 py-1.5 font-medium transition-colors",
               pathname === "/"
-                ? "bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold"
-                : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
+                ? "bg-[#efe9de] dark:bg-[#252320] text-[#cc785c] font-semibold"
+                : "text-[#6c6a64] dark:text-[#a09d96] hover:bg-[#f5f0e8] dark:hover:bg-[#252320] hover:text-[#141413] dark:hover:text-white"
             )}
           >
             <div className="flex items-center space-x-2.5">

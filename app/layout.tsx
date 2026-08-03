@@ -1,11 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { siteConfig } from "@/config/site";
 import { ToastContainer } from "@/components/ui/Toast";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-serif",
+});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -30,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="bn" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${cormorant.variable} font-sans antialiased`}>
         <Providers>
           {children}
           <ToastContainer />
