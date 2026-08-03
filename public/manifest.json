@@ -1,0 +1,9 @@
+{
+  "name": "AK Traders Limited",
+  "short_name": "AK Traders",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04122E",
+  "theme_color": "#1657FF",
+  "description": "Employee Database & Enterprise Resource Management System"
+}
