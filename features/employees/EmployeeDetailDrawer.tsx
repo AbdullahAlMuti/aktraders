@@ -6,19 +6,20 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/hooks/use-toast";
+import Link from "next/link";
 import {
   X,
   Mail,
   Phone,
   Calendar,
   Briefcase,
-  GraduationCap,
   Sparkles,
   FileText,
   Copy,
   CheckCircle2,
   Download,
   Building2,
+  ExternalLink,
 } from "lucide-react";
 
 interface EmployeeDetailDrawerProps {
@@ -29,14 +30,14 @@ interface EmployeeDetailDrawerProps {
 
 export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDetailDrawerProps) {
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"details" | "json">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "pdf" | "json">("details");
 
   if (!isOpen || !employee) return null;
 
   const cvData = employee.cvData || {};
   const workExperience = cvData.workExperience || [];
-  const education = cvData.education || [];
   const skills = cvData.skills || [];
+  const pdfUrl = cvData.originalPdfUrl || cvData.original_pdf_url;
 
   const handleCopyJSON = () => {
     navigator.clipboard.writeText(JSON.stringify(employee, null, 2));
@@ -51,7 +52,7 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
       <div className="flex-1" onClick={onClose} />
 
       {/* Slide-over Content Drawer */}
-      <div className="w-full max-w-lg bg-white dark:bg-[#071526] h-full shadow-2xl border-l border-neutral-200 dark:border-slate-800 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="w-full max-w-xl bg-white dark:bg-[#071526] h-full shadow-2xl border-l border-neutral-200 dark:border-slate-800 flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="p-6 border-b border-neutral-100 dark:border-slate-800 flex items-start justify-between bg-neutral-50/50 dark:bg-slate-900/50">
           <div className="flex items-center space-x-3">
@@ -89,6 +90,16 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
             Profile & Overview
           </button>
           <button
+            onClick={() => setActiveTab("pdf")}
+            className={`pb-2 border-b-2 transition-all ${
+              activeTab === "pdf"
+                ? "border-[#533afd] text-[#533afd] dark:text-white"
+                : "border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200"
+            }`}
+          >
+            Original PDF Preview
+          </button>
+          <button
             onClick={() => setActiveTab("json")}
             className={`pb-2 border-b-2 transition-all ${
               activeTab === "json"
@@ -102,7 +113,7 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
 
         {/* Body Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 text-xs scrollbar-thin">
-          {activeTab === "details" ? (
+          {activeTab === "details" && (
             <>
               {/* Contact Info Card */}
               <div className="rounded-xl border border-neutral-200 dark:border-slate-800 bg-neutral-50/60 dark:bg-slate-900/60 p-4 space-y-2.5">
@@ -134,6 +145,22 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
                   </span>
                   <span className="font-semibold font-mono text-neutral-900 dark:text-white">{employee.joiningDate || "N/A"}</span>
                 </div>
+              </div>
+
+              {/* PDF Preview Link Card */}
+              <div className="rounded-xl border border-blue-200 bg-blue-50/60 dark:border-blue-900 dark:bg-blue-950/40 p-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h5 className="font-bold text-slate-900 dark:text-slate-100">Original Uploaded PDF</h5>
+                    <p className="text-[11px] text-slate-500">{employee.cvFileName || "PDF Document"}</p>
+                  </div>
+                </div>
+                <Link href={`/cv-upload/${employee.id}`}>
+                  <Button variant="primary" size="sm" rightIcon={<ExternalLink className="h-3.5 w-3.5" />}>
+                    Open Full Preview
+                  </Button>
+                </Link>
               </div>
 
               {/* Skills Badges */}
@@ -172,24 +199,23 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
                   </div>
                 </div>
               )}
+            </>
+          )}
 
-              {/* Original File Metadata */}
-              {employee.cvFileName && (
-                <div className="rounded-xl border border-neutral-200 dark:border-slate-800 p-3.5 flex items-center justify-between bg-neutral-50 dark:bg-slate-900">
-                  <div className="flex items-center space-x-2.5">
-                    <FileText className="h-5 w-5 text-neutral-400" />
-                    <div>
-                      <p className="font-bold text-neutral-900 dark:text-white truncate max-w-[200px]">{employee.cvFileName}</p>
-                      <p className="text-[10px] text-neutral-500">{employee.cvFileSize || "Processed File"}</p>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" leftIcon={<Download className="h-3.5 w-3.5" />}>
-                    Record Saved
-                  </Button>
+          {activeTab === "pdf" && (
+            <div className="h-[500px] w-full rounded-xl border border-neutral-200 overflow-hidden dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+              {pdfUrl ? (
+                <iframe src={pdfUrl} className="h-full w-full border-none" title="Original PDF Document Preview" />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <FileText className="h-10 w-10 mb-2" />
+                  <p>No PDF URL available for preview</p>
                 </div>
               )}
-            </>
-          ) : (
+            </div>
+          )}
+
+          {activeTab === "json" && (
             <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 font-mono text-[11px] text-emerald-400 overflow-auto max-h-[500px]">
               <pre className="whitespace-pre-wrap break-words leading-relaxed">
                 {JSON.stringify(employee, null, 2)}

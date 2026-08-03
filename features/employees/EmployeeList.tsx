@@ -12,6 +12,7 @@ import { useFilterStore } from "@/stores/use-filter-store";
 import { Eye, Download } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 export function EmployeeList() {
   const { searchQuery, departmentFilter, statusFilter, page, setPage } = useFilterStore();
@@ -124,15 +125,16 @@ export function EmployeeList() {
       header: "Actions",
       cell: (item) => (
         <div className="flex items-center space-x-1 justify-end">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSelectedEmployee(item)}
-            className="h-8 w-8 text-slate-500 hover:text-[#533afd]"
-            title="View Full Profile Drawer"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+          <Link href={`/cv-upload/${item.id}`}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-slate-500 hover:text-[#533afd]"
+              title="Preview Original PDF & Complete CV"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="icon"
