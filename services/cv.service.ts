@@ -1,58 +1,50 @@
-import { CVUploadItem, ExtractedCVData } from "@/types/cv.types";
-import { api } from "./api-client";
-import { API_ENDPOINTS } from "@/constants/api-endpoints";
+export interface MinimalCVRecord {
+  id: string;
+  candidateName: string;
+  extractedText: string;
+  originalFileName: string;
+  originalPdfUrl: string;
+  uploadedAt: string;
+}
 
 export const cvService = {
-  async uploadCV(file: File): Promise<CVUploadItem> {
+  async uploadCV(file: File): Promise<{ success: boolean; record?: MinimalCVRecord; error?: string }> {
     const formData = new FormData();
     formData.append("file", file);
 
     try {
-      const response = await api.post<CVUploadItem>(API_ENDPOINTS.CV.UPLOAD, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await fetch("/api/cv/upload", {
+        method: "POST",
+        body: formData,
       });
-      return response.data;
-    } catch (e) {
-      // Real upload item constructed from the actual uploaded file
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      return {
-        id: `cv-${Date.now()}`,
-        fileName: file.name,
-        fileSize: `${sizeMb === "0.0" ? (file.size / 1024).toFixed(0) + " KB" : sizeMb + " MB"}`,
-        uploadDate: new Date().toISOString().split("T")[0],
-        status: "processing",
-        progress: 100,
-      };
+      const data = await res.json();
+      return data;
+    } catch (err: any) {
+      return { success: false, error: err.message || "Upload request failed" };
     }
   },
 
-  async extractCVData(cvId: string, file?: File): Promise<ExtractedCVData> {
+  async searchCandidates(query: string): Promise<Array<Omit<MinimalCVRecord, "extractedText">>> {
     try {
-      const response = await api.get<ExtractedCVData>(API_ENDPOINTS.CV.EXTRACT(cvId));
-      return response.data;
-    } catch (e) {
-      // Extract profile name and details dynamically from actual uploaded file name
-      const nameFromFile = file
-        ? file.name.replace(/\.[^/.]+$/, "").replace(/_/g, " ").replace(/-/g, " ")
-        : "Uploaded Candidate";
-
-      return {
-        fullName: nameFromFile.toUpperCase(),
-        designation: "Staff Candidate",
-        phone: "",
-        email: "",
-        address: "Bangladesh",
-        education: [],
-        experience: [],
-        skills: [],
-        personalInfo: {
-          fatherName: "",
-          motherName: "",
-          dob: "",
-          nidNo: "",
-          maritalStatus: "",
-        },
-      };
+      const res = await fetch(`/api/cv/search?query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      return data.results || [];
+    } catch (err) {
+      console.error("Failed to search candidates:", err);
+      return [];
     }
+  },
+
+  async getCVById(id: string): Promise<MinimalCVRecord | null> {
+    try {
+      const res = await fetch(`/api/cv/${id}`);
+      const data = await res.json();
+      if (data.success && data.record) {
+        return data.record;
+      }
+    } catch (err) {
+      console.error("Failed to fetch CV by ID:", err);
+    }
+    return null;
   },
 };

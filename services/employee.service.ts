@@ -11,17 +11,12 @@ export const employeeService = {
     const to = from + limit - 1;
 
     try {
-      let query = supabase.from("employees").select("*", { count: "exact" });
+      // Query `cv_records` table in Supabase
+      let query = supabase.from("cv_records").select("*", { count: "exact" });
 
       if (params.search && params.search.trim() !== "") {
         const s = params.search.trim();
-        query = query.or(`name.ilike.%${s}%,id.ilike.%${s}%,email.ilike.%${s}%`);
-      }
-      if (params.department && params.department !== "all") {
-        query = query.ilike("department", params.department);
-      }
-      if (params.status && (params.status as string) !== "all") {
-        query = query.eq("status", params.status);
+        query = query.ilike("candidate_name", `%${s}%`);
       }
 
       query = query.range(from, to).order("created_at", { ascending: false });
@@ -31,17 +26,24 @@ export const employeeService = {
       if (!error && data) {
         const formattedEmployees: Employee[] = data.map((item: any) => ({
           id: item.id,
-          name: item.name,
-          email: item.email,
-          phone: item.phone || "",
-          department: item.department || "",
-          designation: item.designation || "",
-          status: item.status || "active",
-          joiningDate: item.joining_date || "",
-          cvFileName: item.cv_file_name,
-          cvFileSize: item.cv_file_size,
-          avatarUrl: item.avatar_url,
-          cvData: item.cv_data,
+          name: item.candidate_name,
+          email: "candidate@aktraders.com",
+          phone: "Stored Record",
+          department: "Candidate",
+          designation: "Applicant",
+          status: "active",
+          joiningDate: item.created_at ? new Date(item.created_at).toISOString().split("T")[0] : "",
+          cvFileName: item.original_file_name,
+          cvFileSize: "PDF Document",
+          avatarUrl: undefined,
+          cvData: {
+            id: item.id,
+            candidateName: item.candidate_name,
+            extractedText: item.extracted_text,
+            originalFileName: item.original_file_name,
+            originalPdfUrl: item.original_pdf_url,
+            uploadedAt: item.created_at,
+          },
         }));
 
         const totalRecords = count !== null ? count : formattedEmployees.length;
@@ -57,10 +59,9 @@ export const employeeService = {
         };
       }
     } catch (e) {
-      console.error("Error fetching employees from Supabase:", e);
+      console.error("Error fetching cv_records from Supabase:", e);
     }
 
-    // Return clean empty response when no records exist or query fails
     return {
       data: [],
       meta: {
@@ -75,81 +76,50 @@ export const employeeService = {
   async getEmployeeById(id: string): Promise<Employee | null> {
     const supabase = createClient();
     try {
-      const { data, error } = await supabase.from("employees").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("cv_records").select("*").eq("id", id).single();
       if (!error && data) {
         return {
           id: data.id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone || "",
-          department: data.department || "",
-          designation: data.designation || "",
-          status: data.status || "active",
-          joiningDate: data.joining_date || "",
-          cvFileName: data.cv_file_name,
-          cvFileSize: data.cv_file_size,
-          avatarUrl: data.avatar_url,
-          cvData: data.cv_data,
+          name: data.candidate_name,
+          email: "candidate@aktraders.com",
+          phone: "",
+          department: "Candidate",
+          designation: "Applicant",
+          status: "active",
+          joiningDate: new Date(data.created_at).toISOString().split("T")[0],
+          cvFileName: data.original_file_name,
+          cvFileSize: "PDF Document",
+          avatarUrl: undefined,
+          cvData: {
+            id: data.id,
+            candidateName: data.candidate_name,
+            extractedText: data.extracted_text,
+            originalFileName: data.original_file_name,
+            originalPdfUrl: data.original_pdf_url,
+            uploadedAt: data.created_at,
+          },
         };
       }
     } catch (e) {
-      console.error("Error fetching employee by ID:", e);
+      console.error("Error fetching CV record by ID:", e);
     }
     return null;
   },
 
   async createEmployee(data: Partial<Employee> & { cvData?: any }): Promise<Employee> {
-    const supabase = createClient();
-    const newId = data.id || `EMP-${Math.floor(10000 + Math.random() * 90000)}`;
-    const newEmp = {
+    const newId = data.id || `cv-${Date.now()}`;
+    return {
       id: newId,
-      name: data.name || "Employee",
+      name: data.name || "Candidate",
       email: data.email || "",
       phone: data.phone || "",
       department: data.department || "General",
       designation: data.designation || "Staff",
-      status: data.status || "active",
-      joining_date: data.joiningDate || new Date().toISOString().split("T")[0],
-      cv_file_name: data.cvFileName || null,
-      cv_file_size: data.cvFileSize || null,
-      avatar_url: data.avatarUrl || null,
-      cv_data: data.cvData || null,
-    };
-
-    try {
-      const { data: result, error } = await supabase.from("employees").insert(newEmp).select().single();
-      if (!error && result) {
-        return {
-          id: result.id,
-          name: result.name,
-          email: result.email,
-          phone: result.phone || "",
-          department: result.department,
-          designation: result.designation,
-          status: result.status,
-          joiningDate: result.joining_date,
-          cvFileName: result.cv_file_name,
-          cvFileSize: result.cv_file_size,
-          avatarUrl: result.avatar_url,
-          cvData: result.cv_data,
-        };
-      }
-    } catch (e) {
-      console.error("DB insert error:", e);
-    }
-
-    return {
-      id: newId,
-      name: newEmp.name,
-      email: newEmp.email,
-      phone: newEmp.phone,
-      department: newEmp.department,
-      designation: newEmp.designation,
-      status: newEmp.status as any,
-      joiningDate: newEmp.joining_date,
-      cvFileName: newEmp.cv_file_name || undefined,
-      cvFileSize: newEmp.cv_file_size || undefined,
-      cvData: newEmp.cv_data,
+      status: "active",
+      joiningDate: new Date().toISOString().split("T")[0],
+      cvFileName: data.cvFileName,
+      cvFileSize: data.cvFileSize,
+      cvData: data.cvData,
     };
   },
 };

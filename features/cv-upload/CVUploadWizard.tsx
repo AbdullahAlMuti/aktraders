@@ -3,58 +3,27 @@
 import { useState } from "react";
 import { UploadStep } from "./UploadStep";
 import { ExtractStep } from "./ExtractStep";
-import { ReviewStep } from "./ReviewStep";
 import { SaveStep } from "./SaveStep";
 import { Check } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { employeeService } from "@/services/employee.service";
-import { Employee } from "@/types/employee.types";
+import { MinimalCVRecord } from "@/services/cv.service";
 
 export function CVUploadWizard() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [extractedData, setExtractedData] = useState<any>(null);
-  const [savedEmployee, setSavedEmployee] = useState<Employee | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [savedRecord, setSavedRecord] = useState<MinimalCVRecord | null>(null);
 
   const steps = [
-    { id: 1, label: "Upload CV" },
-    { id: 2, label: "Extract Info" },
-    { id: 3, label: "Review Data" },
-    { id: 4, label: "Save Record" },
+    { id: 1, label: "Upload PDF CV" },
+    { id: 2, label: "Gemini AI Extract & Save" },
+    { id: 3, label: "Complete Record" },
   ];
-
-  const handleReviewSave = async (formData: any) => {
-    setIsSaving(true);
-    try {
-      const created = await employeeService.createEmployee({
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        department: formData.department,
-        designation: formData.designation,
-        status: "active",
-        joiningDate: new Date().toISOString().split("T")[0],
-        cvFileName: formData.cvFileName || uploadedFile?.name,
-        cvFileSize: formData.cvFileSize,
-        cvData: { ...extractedData, ...formData },
-      });
-
-      setSavedEmployee(created);
-      setCurrentStep(4);
-    } catch (e) {
-      console.error("Failed to save employee to database:", e);
-      setCurrentStep(4);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
       {/* Step Indicator Header */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center justify-between max-w-3xl mx-auto">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
           {steps.map((step, index) => {
             const isCompleted = currentStep > step.id;
             const isCurrent = currentStep === step.id;
@@ -116,8 +85,8 @@ export function CVUploadWizard() {
         {currentStep === 2 && (
           <ExtractStep
             file={uploadedFile}
-            onNext={(data) => {
-              setExtractedData(data);
+            onNext={(record) => {
+              setSavedRecord(record);
               setCurrentStep(3);
             }}
             onBack={() => setCurrentStep(1)}
@@ -125,20 +94,11 @@ export function CVUploadWizard() {
         )}
 
         {currentStep === 3 && (
-          <ReviewStep
-            initialData={extractedData}
-            onNext={handleReviewSave}
-            onBack={() => setCurrentStep(2)}
-          />
-        )}
-
-        {currentStep === 4 && (
           <SaveStep
-            savedEmployee={savedEmployee}
+            record={savedRecord}
             onReset={() => {
               setUploadedFile(null);
-              setExtractedData(null);
-              setSavedEmployee(null);
+              setSavedRecord(null);
               setCurrentStep(1);
             }}
           />

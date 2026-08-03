@@ -3,72 +3,58 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Users, CheckCircle2, Hourglass, FileText, UserPlus, ArrowRight } from "lucide-react";
+import { FileText, CheckCircle2, Database, UploadCloud, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { reportsService, DashboardSummary } from "@/services/reports.service";
+import { cvService } from "@/services/cv.service";
 
 export function StatsCards() {
-  const [summary, setSummary] = useState<DashboardSummary>({
-    totalEmployees: 0,
-    processedCount: 0,
-    inProcessingCount: 0,
-    cvUploadedCount: 0,
-    newJoineesCount: 0,
-    departmentDistribution: [],
-    monthlyTrend: [],
-  });
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    reportsService.getDashboardSummary().then((res) => {
-      if (res) setSummary(res);
+    cvService.searchCandidates("").then((res) => {
+      setTotalRecords(res.length);
+      setLoading(false);
     });
   }, []);
 
   const stats = [
     {
-      title: "Total Employees",
-      value: summary.totalEmployees.toLocaleString(),
-      subtitle: "All Active Staff",
-      icon: Users,
-      bgColor: "bg-[#cc785c]/10 text-[#cc785c]",
-      href: "/employees",
-    },
-    {
-      title: "Successfully Processed",
-      value: summary.processedCount.toLocaleString(),
-      subtitle: "To Date",
-      icon: CheckCircle2,
-      bgColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-      href: "/employees?status=active",
-    },
-    {
-      title: "In Processing",
-      value: summary.inProcessingCount.toLocaleString(),
-      subtitle: "AI Processing Active",
-      icon: Hourglass,
-      bgColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      title: "Total Saved CVs",
+      value: loading ? "..." : totalRecords.toString(),
+      subtitle: "Stored in Supabase DB",
+      icon: FileText,
+      bgColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
       href: "/cv-upload",
     },
     {
-      title: "CV Uploaded",
-      value: summary.cvUploadedCount.toLocaleString(),
-      subtitle: "To Date",
-      icon: FileText,
+      title: "Database Status",
+      value: "Active",
+      subtitle: "Postgres Storage",
+      icon: Database,
+      bgColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      href: "/cv-upload",
+    },
+    {
+      title: "Gemini Vision AI",
+      value: "Enabled",
+      subtitle: "Server-side Extraction",
+      icon: CheckCircle2,
       bgColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
       href: "/cv-upload",
     },
     {
-      title: "New Joinees",
-      value: summary.newJoineesCount.toLocaleString(),
-      subtitle: "This Month",
-      icon: UserPlus,
-      bgColor: "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400",
-      href: "/employees",
+      title: "PDF Storage",
+      value: "Secure",
+      subtitle: "Original Preservation",
+      icon: UploadCloud,
+      bgColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      href: "/cv-upload",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, i) => {
         const Icon = stat.icon;
         return (
@@ -88,7 +74,7 @@ export function StatsCards() {
                 href={stat.href}
                 className="inline-flex items-center text-xs font-semibold text-[#cc785c] hover:text-[#a9583e] dark:text-[#cc785c] group pt-1"
               >
-                <span>View Details</span>
+                <span>CV Upload Workflow</span>
                 <ArrowRight className="h-3 w-3 ml-1 transition-transform group-hover:translate-x-1" />
               </Link>
             </CardContent>
