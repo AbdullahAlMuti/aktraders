@@ -12,7 +12,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("Global App Error:", error);
+    console.error("Application Error:", error);
   }, [error]);
 
   return (
@@ -21,13 +21,13 @@ export default function Error({
         <AlertOctagon className="h-8 w-8" />
       </div>
       <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-        একটি সাময়িক ত্রুটি ঘটেছে (Application Error)
+        Application Error
       </h2>
       <p className="mt-2 text-sm text-slate-500 max-w-md">
-        {error.message || "সিস্টেমে সাময়িক বিঘ্ন ঘটেছে। দয়া করে পুনরায় চেষ্টা করুন।"}
+        {error.message || "A temporary system error occurred. Please try again."}
       </p>
       <Button onClick={() => reset()} className="mt-6" leftIcon={<RefreshCw className="h-4 w-4" />}>
-        পুনরায় চেষ্টা করুন (Try Again)
+        Try Again
       </Button>
     </div>
   );
