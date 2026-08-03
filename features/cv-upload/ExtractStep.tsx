@@ -116,8 +116,8 @@ export function ExtractStep({
                 PERSONAL INFORMATION
               </h4>
               <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div><span className="text-slate-500">Father's Name:</span> Md. Karim Hasan</div>
-                <div><span className="text-slate-500">Mother's Name:</span> Mrs. Salma Begum</div>
+                <div><span className="text-slate-500">Father&apos;s Name:</span> Md. Karim Hasan</div>
+                <div><span className="text-slate-500">Mother&apos;s Name:</span> Mrs. Salma Begum</div>
                 <div><span className="text-slate-500">Date of Birth:</span> 15 January 1993</div>
                 <div><span className="text-slate-500">NID No:</span> 1993123456789012</div>
               </div>
