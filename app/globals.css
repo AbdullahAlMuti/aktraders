@@ -4,80 +4,80 @@
 
 @layer base {
   :root {
-    --background: 30 5% 9%;    /* #181715 Claude Dark Charcoal */
-    --foreground: 38 33% 97%;  /* #faf9f5 Warm Cream Text */
+    --background: 210 10% 5%;   /* #0c0d0e Unified Dark Charcoal Canvas */
+    --foreground: 210 20% 98%;  /* #f8fafc Text */
 
-    --card: 30 7% 14%;         /* #252320 Dark Elevated Card */
-    --card-foreground: 38 33% 97%;
+    --card: 210 10% 9%;        /* #16181a Card Surface */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 30 5% 9%;
-    --popover-foreground: 38 33% 97%;
+    --popover: 210 10% 5%;
+    --popover-foreground: 210 20% 98%;
 
     --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 5% 16%;
-    --secondary-foreground: 38 33% 97%;
+    --secondary: 210 10% 12%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 30 5% 16%;
-    --muted-foreground: 38 5% 60%;
+    --muted: 210 10% 12%;
+    --muted-foreground: 210 10% 60%;
 
-    --accent: 30 5% 16%;
-    --accent-foreground: 38 33% 97%;
+    --accent: 210 10% 12%;
+    --accent-foreground: 210 20% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 38 33% 97%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 5% 18%;       /* #2e2c28 */
-    --input: 30 5% 18%;
+    --border: 210 10% 15%;     /* #22262b Border */
+    --input: 210 10% 15%;
     --ring: 15 52% 58%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: #121110;
-    --sidebar-foreground: #faf9f5;
+    --sidebar-background: #0c0d0e;
+    --sidebar-foreground: #f8fafc;
     --sidebar-primary: #cc785c;
     --sidebar-active: #a9583e;
 
     /* Claude Specific Design Tokens */
     --claude-primary: #cc785c;
     --claude-primary-active: #a9583e;
-    --claude-ink: #faf9f5;
-    --claude-canvas: #181715;
-    --claude-hairline: #2e2c28;
+    --claude-ink: #f8fafc;
+    --claude-canvas: #0c0d0e;
+    --claude-hairline: #22262b;
   }
 
   .dark {
-    --background: 30 5% 9%;    /* #181715 Claude Dark Charcoal */
-    --foreground: 38 33% 97%;  /* #faf9f5 Warm Cream Text */
+    --background: 210 10% 5%;   /* #0c0d0e Unified Dark Charcoal Canvas */
+    --foreground: 210 20% 98%;  /* #f8fafc Text */
 
-    --card: 30 7% 14%;         /* #252320 Dark Elevated Card */
-    --card-foreground: 38 33% 97%;
+    --card: 210 10% 9%;        /* #16181a Card Surface */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 30 5% 9%;
-    --popover-foreground: 38 33% 97%;
+    --popover: 210 10% 5%;
+    --popover-foreground: 210 20% 98%;
 
     --primary: 15 52% 58%;    /* #cc785c Anthropic Coral */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 5% 16%;
-    --secondary-foreground: 38 33% 97%;
+    --secondary: 210 10% 12%;
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 30 5% 16%;
-    --muted-foreground: 38 5% 60%;
+    --muted: 210 10% 12%;
+    --muted-foreground: 210 10% 60%;
 
-    --accent: 30 5% 16%;
-    --accent-foreground: 38 33% 97%;
+    --accent: 210 10% 12%;
+    --accent-foreground: 210 20% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 38 33% 97%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 30 5% 18%;       /* #2e2c28 */
-    --input: 30 5% 18%;
+    --border: 210 10% 15%;     /* #22262b */
+    --input: 210 10% 15%;
     --ring: 15 52% 58%;
 
-    --sidebar-background: #121110;
-    --sidebar-foreground: #faf9f5;
+    --sidebar-background: #0c0d0e;
+    --sidebar-foreground: #f8fafc;
     --sidebar-primary: #cc785c;
     --sidebar-active: #a9583e;
   }
@@ -112,7 +112,7 @@
 
 /* Claude Design System Utilities */
 .claude-card-shadow {
-  box-shadow: 0 1px 3px rgba(20, 20, 19, 0.04), 0 6px 16px rgba(20, 20, 19, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .claude-btn-primary {
@@ -124,12 +124,9 @@
 }
 .claude-btn-primary:hover {
   background-color: #a9583e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(204, 120, 92, 0.25);
 }
 .claude-btn-primary:active {
   background-color: #87432f;
-  transform: translateY(0);
 }
 
 .font-tabular {

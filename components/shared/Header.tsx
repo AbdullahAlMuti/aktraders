@@ -14,7 +14,7 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#e3e8ee] bg-white/90 px-4 md:px-6 backdrop-blur-md dark:border-slate-800 dark:bg-[#0d253d]/90 transition-colors">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-[#e6dfd8] bg-[#faf9f5]/90 px-4 md:px-6 backdrop-blur-md dark:border-[#22262b] dark:bg-[#0c0d0e]/90 transition-colors">
       {/* Left: Sidebar Toggle & Page Title */}
       <div className="flex items-center space-x-4">
         <button
