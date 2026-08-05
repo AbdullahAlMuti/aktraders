@@ -5,13 +5,61 @@ import PDFParser from "pdf2json";
 export const dynamic = "force-dynamic";
 
 function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const pdfParser = new PDFParser(null, true);
-    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
-    pdfParser.on("pdfParser_dataReady", () => {
+    pdfParser.on("pdfParser_dataError", () => resolve(""));
+    pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
       try {
-        const rawText = pdfParser.getRawTextContent() || "";
-        const cleanText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
+        let fullText = "";
+        if (pdfData && pdfData.Pages) {
+          for (const page of pdfData.Pages) {
+            let pageText = "";
+            let lastY = -1;
+            if (page.Texts) {
+              for (const textObj of page.Texts) {
+                const y = textObj.y;
+                let textStr = "";
+                if (textObj.R) {
+                  for (const run of textObj.R) {
+                    if (run.T) {
+                      try {
+                        textStr += decodeURIComponent(run.T);
+                      } catch {
+                        textStr += run.T;
+                      }
+                    }
+                  }
+                }
+                if (lastY !== -1 && Math.abs(y - lastY) > 0.3) {
+                  pageText += "\n";
+                } else if (pageText.length > 0 && !pageText.endsWith("\n") && !pageText.endsWith(" ")) {
+                  pageText += " ";
+                }
+                pageText += textStr;
+                lastY = y;
+              }
+            }
+            fullText += pageText + "\n\n";
+          }
+        }
+
+        if (!fullText.trim()) {
+          const rawText = pdfParser.getRawTextContent() || "";
+          try {
+            fullText = decodeURIComponent(rawText);
+          } catch {
+            fullText = rawText;
+          }
+        }
+
+        const cleanText = fullText
+          .replace(/----------------Page \(\d+\) Break----------------/g, "")
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ")
+          .replace(/ +/g, " ")
+          .replace(/\n +/g, "\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
         resolve(cleanText);
       } catch (e) {
         resolve("");
@@ -39,11 +87,11 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // 1. High-Precision Vision AI Extraction via Gemini 2.5 Flash
+    // 1. High-Precision Vision AI Extraction via Gemini 1.5 Flash
     if (apiKey) {
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const documentPart = {
           inlineData: {
@@ -52,10 +100,10 @@ export async function POST(req: NextRequest) {
           },
         };
 
-        const prompt = `Inspect this CV PDF and extract all text into a clean JSON with fields: fullName, email, phone, designation, department, education, workExperience, additionalInfo. RETURN ONLY VALID JSON.`;
+        const prompt = `Read this CV PDF document and extract all text content exactly in the layout and formatting structure as it appears in the PDF document. Preserve all section headers, line breaks, paragraph spacing, bullet points, work experience timelines, and education formatting intact. Return ONLY a valid JSON object with candidate info and formatted text fields.`;
 
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini API timeout")), 1200)
+          setTimeout(() => reject(new Error("Gemini API timeout")), 10000)
         );
 
         const aiPromise = model.generateContent([prompt, documentPart]);

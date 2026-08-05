@@ -6,32 +6,40 @@ import { Button } from "@/components/ui/Button";
 
 interface UploadStepProps {
   onFileSelect: (file: File) => void;
+  onBulkSelect?: (files: File[]) => void;
 }
 
-export function UploadStep({ onFileSelect }: UploadStepProps) {
+export function UploadStep({ onFileSelect, onBulkSelect }: UploadStepProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
-  const MAX_SIZE_MB = 10;
+  const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg", "application/zip"];
+  const MAX_SIZE_MB = 50;
 
-  const validateAndSetFile = (file: File) => {
+  const validateAndSetFiles = (files: File[]) => {
     setErrorMessage(null);
+    if (!files || files.length === 0) return;
 
-    // Validate type
-    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
-    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png)$/i.test(file.name);
-
-    if (!isPdf && !isImage) {
-      setErrorMessage("Unsupported file format. Please upload a PDF, JPG, or PNG file.");
+    // Check if zip or multiple files provided
+    const isZip = files.some((f) => f.name.toLowerCase().endsWith(".zip"));
+    if ((files.length > 1 || isZip) && onBulkSelect) {
+      onBulkSelect(files);
       return;
     }
 
-    // Validate size (10MB max)
+    const file = files[0];
+    const isPdf = file.type === "application/pdf" || file.name.endsWith(".pdf");
+    const isImage = file.type.startsWith("image/") || /\.(jpg|jpeg|png)$/i.test(file.name);
+
+    if (!isPdf && !isImage && !isZip) {
+      setErrorMessage("Unsupported file format. Please upload a PDF, DOCX, JPG, PNG, or ZIP file.");
+      return;
+    }
+
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setErrorMessage(`File is too large. Maximum file size supported is ${MAX_SIZE_MB}MB.`);
+      setErrorMessage(`File is too large. Maximum supported size is ${MAX_SIZE_MB}MB.`);
       return;
     }
 
@@ -54,13 +62,13 @@ export function UploadStep({ onFileSelect }: UploadStepProps) {
     setDragActive(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      validateAndSetFile(e.dataTransfer.files[0]);
+      validateAndSetFiles(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      validateAndSetFile(e.target.files[0]);
+      validateAndSetFiles(Array.from(e.target.files));
     }
   };
 

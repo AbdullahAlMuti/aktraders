@@ -1,70 +1,90 @@
 import * as React from "react";
+import Image from "next/image";
 import { Shield, UploadCloud, Search } from "lucide-react";
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen w-full bg-slate-100 dark:bg-slate-950">
-      {/* Left Branding Hero Panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-[#021438] via-[#0A2540] to-[#04122E] p-12 text-white relative overflow-hidden">
-        {/* Background Accent Graphics */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
+    <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-950 font-sans">
+      {/* Left Branding Hero Panel with Full View Background Image */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 xl:p-12 text-white relative overflow-hidden bg-[#041a54]">
+        {/* Full View Background Image */}
+        <Image
+          src="/images/hero-illustration.jpg"
+          alt="Employee Database Management System Background"
+          fill
+          priority
+          className="object-cover object-center z-0"
+        />
+
+        {/* Dark Blue Overlay Gradient for High Contrast Text */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#021442]/90 via-[#041f69]/80 to-[#020e2e]/95 z-[1]" />
+
+        {/* Background Accent Ornaments */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl z-[2]" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-96 w-96 rounded-full bg-cyan-400/20 blur-3xl z-[2]" />
+
+        {/* Dot pattern grid top right */}
+        <div className="absolute top-8 right-12 grid grid-cols-5 gap-2 opacity-25 pointer-events-none z-[2]">
+          {Array.from({ length: 25 }).map((_, i) => (
+            <div key={i} className="h-1.5 w-1.5 rounded-full bg-white" />
+          ))}
+        </div>
 
         {/* Brand Header */}
         <div className="flex items-center space-x-3 z-10">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white font-black text-[#0A2540] text-xl shadow-lg">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white font-black text-[#041f69] text-sm shadow-md tracking-tighter">
             AK
           </div>
           <div>
-            <h2 className="text-lg font-bold tracking-wider uppercase">A K TRADERS</h2>
-            <p className="text-xs text-blue-300 font-medium">LIMITED &gt;</p>
+            <h2 className="text-base font-bold tracking-wide leading-tight drop-shadow">A K TRADERS</h2>
+            <p className="text-[11px] text-blue-200 font-medium tracking-wider">LIMITED &gt;</p>
           </div>
         </div>
 
         {/* Hero Content */}
-        <div className="my-auto max-w-lg z-10 space-y-6">
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest">Welcome to</p>
-            <h1 className="text-4xl font-extrabold tracking-tight leading-tight">
-              Employee Database Management System
+        <div className="my-auto z-10 space-y-6 max-w-lg mx-auto w-full">
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-blue-300 uppercase tracking-widest">Welcome to</p>
+            <h1 className="text-4xl xl:text-5xl font-extrabold tracking-tight leading-tight drop-shadow-md">
+              Employee Database <br /> Management System
             </h1>
-            <div className="h-1 w-16 bg-blue-500 rounded-full mt-3" />
+            <div className="h-1.5 w-16 bg-blue-400 rounded-full mt-4 shadow-sm" />
           </div>
 
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Securely upload, manage and organize employee CVs in one centralized AI-powered enterprise system.
+          <p className="text-sm xl:text-base text-slate-200 leading-relaxed font-normal drop-shadow">
+            Securely upload, manage and organize employee CVs in one centralized system.
           </p>
 
           {/* Feature Badges */}
-          <div className="grid grid-cols-3 gap-4 pt-6">
-            <div className="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="p-2.5 rounded-lg bg-blue-600/30 text-blue-300 mb-2">
+          <div className="grid grid-cols-3 gap-3 pt-6">
+            <div className="flex flex-col items-center p-3.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-center shadow-lg hover:bg-white/15 transition-all">
+              <div className="p-2.5 rounded-xl bg-blue-500/30 text-blue-200 mb-2">
                 <Shield className="h-5 w-5" />
               </div>
               <span className="text-xs font-bold text-white">Secure Access</span>
-              <span className="text-[10px] text-slate-400 mt-1">Protected data</span>
+              <span className="text-[10px] text-slate-200/90 mt-1 leading-tight">Your data is safe and protected</span>
             </div>
 
-            <div className="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="p-2.5 rounded-lg bg-cyan-600/30 text-cyan-300 mb-2">
+            <div className="flex flex-col items-center p-3.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-center shadow-lg hover:bg-white/15 transition-all">
+              <div className="p-2.5 rounded-lg bg-blue-500/30 text-blue-200 mb-2">
                 <UploadCloud className="h-5 w-5" />
               </div>
               <span className="text-xs font-bold text-white">Easy Upload</span>
-              <span className="text-[10px] text-slate-400 mt-1">AI parsing</span>
+              <span className="text-[10px] text-slate-200/90 mt-1 leading-tight">Upload employee CVs easily</span>
             </div>
 
-            <div className="flex flex-col items-center p-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm text-center">
-              <div className="p-2.5 rounded-lg bg-emerald-600/30 text-emerald-300 mb-2">
+            <div className="flex flex-col items-center p-3.5 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-md text-center shadow-lg hover:bg-white/15 transition-all">
+              <div className="p-2.5 rounded-lg bg-blue-500/30 text-blue-200 mb-2">
                 <Search className="h-5 w-5" />
               </div>
               <span className="text-xs font-bold text-white">Quick Search</span>
-              <span className="text-[10px] text-slate-400 mt-1">Instant query</span>
+              <span className="text-[10px] text-slate-200/90 mt-1 leading-tight">Find and manage CVs instantly</span>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="text-xs text-slate-400 z-10">
+        <div className="text-center text-xs text-slate-300/80 z-10 font-medium">
           © 2026 A K Traders Limited. All rights reserved.
         </div>
       </div>

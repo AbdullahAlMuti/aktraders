@@ -2,8 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Link from "next/link";
-import { FileText, User, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FileText, User, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 import { cvService } from "@/services/cv.service";
 
 interface CVItem {
@@ -19,12 +19,22 @@ export function RecentCVTable() {
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
 
-  useEffect(() => {
+  const fetchRecords = useCallback(() => {
     cvService.searchCandidates("").then((results) => {
       setRecords(results);
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    fetchRecords();
+    window.addEventListener("focus", fetchRecords);
+    const interval = setInterval(fetchRecords, 3000);
+    return () => {
+      window.removeEventListener("focus", fetchRecords);
+      clearInterval(interval);
+    };
+  }, [fetchRecords]);
 
   const visibleRecords = showAll ? records : records.slice(0, 6);
 
@@ -85,13 +95,30 @@ export function RecentCVTable() {
                         {new Date(item.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
                       <td className="py-3 px-2 text-right">
-                        <Link
-                          href={`/cv-upload/${item.id}`}
-                          className="inline-flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold bg-[#e8f1ff] text-[#0066ff] hover:bg-[#d4e4ff] transition-colors"
-                        >
-                          <span>Open</span>
-                          <ExternalLink className="h-3 w-3" />
-                        </Link>
+                        <div className="flex items-center justify-end space-x-1">
+                          <Link
+                            href={`/profile?id=${item.id}`}
+                            className="inline-flex items-center space-x-1 rounded-lg px-2.5 py-1 text-xs font-bold bg-[#e8f1ff] text-[#0066ff] hover:bg-[#d4e4ff] transition-colors"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </Link>
+                          <button
+                            onClick={async () => {
+                              if (confirm(`Delete CV record for ${item.candidateName}?`)) {
+                                const { employeeService } = await import("@/services/employee.service");
+                                const ok = await employeeService.deleteEmployee(item.id);
+                                if (ok) {
+                                  setRecords((prev) => prev.filter((r) => r.id !== item.id));
+                                }
+                              }
+                            }}
+                            className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            title="Delete Record"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -34,3 +34,5 @@ next-env.d.ts
 *.pem
 .vscode/
 .idea/
+scratch/
+.superpowers/

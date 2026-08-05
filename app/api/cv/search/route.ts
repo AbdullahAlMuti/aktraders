@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
@@ -15,7 +16,10 @@ export async function GET(req: NextRequest) {
     let dbQuery = supabase.from("cv_records").select("id, candidate_name, original_file_name, original_pdf_url, created_at");
 
     if (query.length > 0) {
-      dbQuery = dbQuery.ilike("candidate_name", `%${query}%`);
+      const q = query.replace(/AKT-/i, "").replace(/'/g, "''");
+      dbQuery = dbQuery.or(
+        `candidate_name.ilike.%${q}%,id.ilike.%${q}%,original_file_name.ilike.%${q}%,extracted_text.ilike.%${q}%`
+      );
     }
 
     const { data, error } = await dbQuery.order("created_at", { ascending: false }).limit(20);

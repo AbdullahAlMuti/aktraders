@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PageContainer } from "@/components/layouts/PageContainer";
+import { safeParseStructuredJSON } from "@/lib/cv-json-unwrapper";
+import { usePdfBlobUrl } from "@/utils/pdf-preview";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import {
@@ -85,137 +87,96 @@ interface StructuredCandidateJSON {
   };
 }
 
+function extractAddressFromText(text: string): string {
+  if (!text) return "Not Specified in CV";
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (/plot|house|road|street|court|district|city|state|zip|post|flat|block|dhaka|abuja|lagos|chittagong|sylhet|nigeria|bangladesh/i.test(line)) {
+      if (!/university|college|school|institute|company|experience|education|summary|skills/i.test(line) && line.length > 12 && line.length < 130) {
+        return line;
+      }
+    }
+  }
+  return "Not Specified in CV";
+}
+
+function extractNationality(text: string): string {
+  const lower = (text || "").toLowerCase();
+  if (lower.includes("nigeria")) return "Nigerian";
+  if (lower.includes("bangladesh")) return "Bangladeshi";
+  if (lower.includes("india")) return "Indian";
+  if (lower.includes("pakistan")) return "Pakistani";
+  if (lower.includes("united states") || lower.includes("usa")) return "American";
+  if (lower.includes("united kingdom") || lower.includes("uk")) return "British";
+  if (lower.includes("canada")) return "Canadian";
+  return "Not Specified";
+}
+
 function parseCVToJSON(employee: Employee | null): StructuredCandidateJSON {
-  const text = employee?.cvData?.extractedText || "";
-  const lower = text.toLowerCase();
+  const cvData = employee?.cvData || {};
+  const text = cvData.extractedText || "";
 
-  const name = employee?.name || "Md. Rahim Hasan";
-  const email = employee?.email || "rahim.hasan@email.com";
-  const phone = employee?.phone || "+880 1700-000000";
-  const designation = employee?.designation || "Senior Executive";
-  const department = employee?.department || "Sales Department";
-  const joiningDate = employee?.joiningDate || "01-01-2023";
-  const pdfUrl = employee?.cvData?.originalPdfUrl;
-  const pdfFileName = employee?.cvFileName || `${name.replace(/\s+/g, "_")}_CV.pdf`;
+  // Recursively unwrap structured JSON directly from cvData.structuredData or cvData.structured_data
+  const structured = safeParseStructuredJSON(cvData.structuredData || cvData.structured_data);
 
-  // Parse Education from text if available
-  const educationList: StructuredCandidateJSON["education"] = [];
-  if (lower.includes("bsc") || lower.includes("bachelor") || lower.includes("computer science") || lower.includes("university")) {
-    educationList.push({
-      degree: lower.includes("msc") || lower.includes("master") ? "MSc in Software Engineering" : "BSc in Computer Science",
-      institution: lower.includes("dhaka") ? "University of Dhaka" : "BUET / Public University",
-      passingYear: "2018",
-      board: "University of Dhaka",
-      major: "Computer Science & Engineering",
-      result: "CGPA 3.25 (out of 4.00)",
-    });
-    educationList.push({
-      degree: "Higher Secondary Certificate (HSC)",
-      institution: "Dhaka City College",
-      passingYear: "2014",
-      board: "Dhaka Board",
-      major: "Science",
-      result: "GPA 5.00 (out of 5.00)",
-    });
-  } else {
-    educationList.push({
-      degree: "BSc in Computer Science",
-      institution: "University of Dhaka",
-      passingYear: "2018",
-      board: "University of Dhaka",
-      major: "CSE",
-      result: "CGPA 3.25 (out of 4.00)",
-    });
-  }
+  const name = structured?.personal?.fullName || structured?.candidateName || employee?.name || "Candidate Name";
+  const email = structured?.personal?.email || (employee?.email && employee.email !== "N/A" ? employee.email : "Not Provided in CV");
+  const phone = structured?.personal?.mobile || structured?.personal?.phone || (employee?.phone && employee.phone !== "N/A" ? employee.phone : "Not Provided in CV");
+  const designation = structured?.employment?.designation || (employee?.designation && employee.designation !== "N/A" ? employee.designation : "Not Provided in CV");
+  const department = structured?.employment?.department || (employee?.department && employee.department !== "N/A" ? employee.department : "Not Provided in CV");
+  const joiningDate = structured?.employment?.joiningDate || employee?.joiningDate || new Date().toISOString().split("T")[0];
+  const pdfUrl = cvData.originalPdfUrl;
+  const pdfFileName = cvData.originalFileName || employee?.cvFileName || `${name.replace(/\s+/g, "_")}_CV.pdf`;
 
-  // Parse Experience from text if available
-  const experienceList: StructuredCandidateJSON["experience"] = [];
-  if (lower.includes("engineer") || lower.includes("developer") || lower.includes("executive")) {
-    experienceList.push({
-      role: designation,
-      company: "AK Traders / Enterprise",
-      duration: "Jan 2021 — Present",
-      isCurrent: true,
-    });
-    experienceList.push({
-      role: "Executive Officer",
-      company: "XYZ Corporation",
-      duration: "Jun 2019 — Dec 2020",
-      isCurrent: false,
-    });
-    experienceList.push({
-      role: "Junior Officer",
-      company: "DEF Group",
-      duration: "Jan 2018 — May 2019",
-      isCurrent: false,
-    });
-  } else {
-    experienceList.push({
-      role: "Senior Executive",
-      company: "ABC Limited",
-      duration: "Jan 2021 — Present",
-      isCurrent: true,
-    });
-    experienceList.push({
-      role: "Executive",
-      company: "XYZ Corporation",
-      duration: "Jun 2019 — Dec 2020",
-      isCurrent: false,
-    });
-    experienceList.push({
-      role: "Junior Executive",
-      company: "DEF Group",
-      duration: "Jan 2018 — May 2019",
-      isCurrent: false,
-    });
-  }
+  // Education Extraction - return [] if empty in CV
+  const rawEducation = structured?.education;
+  const educationList: StructuredCandidateJSON["education"] = Array.isArray(rawEducation) ? rawEducation : [];
 
-  // Extract Skills
-  const skillsList: string[] = [];
-  if (lower.includes("react")) skillsList.push("React.js");
-  if (lower.includes("python")) skillsList.push("Python");
-  if (lower.includes("sql") || lower.includes("database")) skillsList.push("SQL / PostgreSQL");
-  if (lower.includes("javascript") || lower.includes("typescript")) skillsList.push("JavaScript / TypeScript");
-  if (lower.includes("management") || lower.includes("lead")) skillsList.push("Project Management");
-  if (skillsList.length === 0) {
-    skillsList.push("Management", "Communication", "Data Analysis", "Problem Solving", "Strategic Planning");
-  }
+  // Experience Extraction - return [] if empty in CV
+  const rawExperience = structured?.experience || structured?.workExperience;
+  const experienceList: StructuredCandidateJSON["experience"] = Array.isArray(rawExperience) ? rawExperience : [];
+
+  // Skills Extraction - return [] if empty in CV
+  const rawSkills = structured?.other?.skills || structured?.skills;
+  const skillsList: string[] = Array.isArray(rawSkills) ? rawSkills : [];
+
+  const rawPresentAddr = structured?.personal?.presentAddress;
+  const presentAddress = rawPresentAddr || (extractAddressFromText(text) !== "Not Specified in CV" ? extractAddressFromText(text) : "Not Provided in CV");
+
+  const rawPermanentAddr = structured?.personal?.permanentAddress;
+  const permanentAddress = rawPermanentAddr || (presentAddress !== "Not Provided in CV" ? presentAddress : "Not Provided in CV");
 
   return {
     personal: {
       fullName: name,
-      fatherName: "Md. Karim Hasan",
-      motherName: "Mrs. Salma Begum",
-      dob: "15 January 1993",
-      gender: "Male",
-      maritalStatus: "Married",
-      nationality: "Bangladeshi",
-      religion: "Islam",
-      nid: "19931234567890123",
-      bloodGroup: "B+",
+      fatherName: structured?.personal?.fatherName || "Not Provided in CV",
+      motherName: structured?.personal?.motherName || "Not Provided in CV",
+      dob: structured?.personal?.dob || "Not Provided in CV",
+      gender: structured?.personal?.gender || "Not Provided in CV",
+      maritalStatus: structured?.personal?.maritalStatus || "Not Provided in CV",
+      nationality: structured?.personal?.nationality || (extractNationality(text) !== "Not Specified" ? extractNationality(text) : "Not Provided in CV"),
+      religion: structured?.personal?.religion || "Not Provided in CV",
+      nid: structured?.personal?.nid || "Not Provided in CV",
+      bloodGroup: structured?.personal?.bloodGroup || "Not Provided in CV",
       mobile: phone,
       email: email,
-      presentAddress: "House-12, Road-6, Dhanmondi, Dhaka-1205, Bangladesh",
-      permanentAddress: "House-12, Road-6, Dhanmondi, Dhaka-1205, Bangladesh",
-      emergencyContact: "+880 1800-000000 (Brother — Md. Sohel Hasan)",
+      presentAddress: presentAddress,
+      permanentAddress: permanentAddress,
+      emergencyContact: structured?.personal?.emergencyContact || "Not Provided in CV",
     },
     employment: {
       department: department,
       designation: designation,
-      workplace: "Dhanmondi Office, Dhaka",
+      workplace: structured?.employment?.workplace || "Not Provided in CV",
       joiningDate: joiningDate,
-      employmentType: "Full-Time",
-      salaryScale: "৳ 45,000 (Monthly)",
+      employmentType: structured?.employment?.employmentType || "Full-Time",
+      salaryScale: structured?.employment?.salaryScale || "Not Provided in CV",
       status: "Active",
     },
     education: educationList,
     experience: experienceList,
     documents: [
-      { name: pdfFileName, size: "3.2 MB", type: "pdf", url: pdfUrl },
-      { name: "NID_Card.pdf", size: "1.1 MB", type: "pdf", url: pdfUrl },
-      { name: "Educational_Certificate.pdf", size: "2.4 MB", type: "pdf", url: pdfUrl },
-      { name: "Experience_Certificate.pdf", size: "1.8 MB", type: "pdf", url: pdfUrl },
-      { name: "Passport_Size_Photo.jpg", size: "512 KB", type: "img", url: pdfUrl },
+      { name: pdfFileName, size: "PDF Document", type: "pdf", url: pdfUrl },
     ],
     other: {
       skills: skillsList,
@@ -223,6 +184,7 @@ function parseCVToJSON(employee: Employee | null): StructuredCandidateJSON {
     },
   };
 }
+
 
 export default function EmployeeProfilePage() {
   const router = useRouter();
@@ -233,6 +195,9 @@ export default function EmployeeProfilePage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"personal" | "employment" | "education" | "experience" | "documents" | "other">("personal");
   const [copiedJSON, setCopiedJSON] = useState(false);
+
+  const pdfUrl = employee?.cvData?.originalPdfUrl;
+  const safePdfPreviewUrl = usePdfBlobUrl(pdfUrl);
 
   useEffect(() => {
     async function loadData() {
@@ -261,7 +226,6 @@ export default function EmployeeProfilePage() {
 
   const jsonData = parseCVToJSON(employee);
   const employeeIdCode = employee?.id ? `AKT-${employee.id.slice(-4).toUpperCase()}` : "AKT-0001";
-  const pdfUrl = employee?.cvData?.originalPdfUrl;
   const pdfFileName = employee?.cvFileName || `${jsonData.personal.fullName.replace(/\s+/g, "_")}_CV.pdf`;
 
   const handleCopyJSON = () => {
@@ -589,35 +553,41 @@ export default function EmployeeProfilePage() {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {jsonData.education.map((edu, idx) => (
-                <div key={idx} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                      {edu.degree}
-                    </span>
-                    <span className="font-mono text-xs font-bold text-slate-400">{edu.passingYear}</span>
-                  </div>
+            {jsonData.education.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {jsonData.education.map((edu, idx) => (
+                  <div key={idx} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
+                        {edu.degree}
+                      </span>
+                      <span className="font-mono text-xs font-bold text-slate-400">{edu.passingYear}</span>
+                    </div>
 
-                  <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{edu.institution}</h4>
+                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{edu.institution}</h4>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800">
-                    <div>
-                      <span className="text-slate-400 text-[10px] block font-medium">Board / University</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{edu.board}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 text-[10px] block font-medium">Major / Field</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{edu.major}</span>
-                    </div>
-                    <div className="col-span-2 pt-1">
-                      <span className="text-slate-400 text-[10px] block font-medium">Result / Grade</span>
-                      <span className="font-mono font-extrabold text-[#0066ff]">{edu.result}</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                      <div>
+                        <span className="text-slate-400 text-[10px] block font-medium">Board / University</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{edu.board}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 text-[10px] block font-medium">Major / Field</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">{edu.major}</span>
+                      </div>
+                      <div className="col-span-2 pt-1">
+                        <span className="text-slate-400 text-[10px] block font-medium">Result / Grade</span>
+                        <span className="font-mono font-extrabold text-[#0066ff]">{edu.result}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-xs font-medium">
+                No educational qualifications provided in CV.
+              </div>
+            )}
           </div>
         )}
 
@@ -631,27 +601,33 @@ export default function EmployeeProfilePage() {
               </h3>
             </div>
 
-            <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
-              {jsonData.experience.map((exp, idx) => (
-                <div key={idx} className="relative space-y-1">
-                  <span
-                    className={`absolute -left-[27px] top-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 ${
-                      exp.isCurrent ? "bg-[#0066ff] ring-4 ring-blue-100 dark:ring-blue-950" : "bg-slate-300 dark:bg-slate-700"
-                    }`}
-                  />
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{exp.role}</h4>
-                    {exp.isCurrent && (
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
-                        Current Position
-                      </span>
-                    )}
+            {jsonData.experience.length > 0 ? (
+              <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-800">
+                {jsonData.experience.map((exp, idx) => (
+                  <div key={idx} className="relative space-y-1">
+                    <span
+                      className={`absolute -left-[27px] top-1 h-4 w-4 rounded-full border-2 border-white dark:border-slate-900 ${
+                        exp.isCurrent ? "bg-[#0066ff] ring-4 ring-blue-100 dark:ring-blue-950" : "bg-slate-300 dark:bg-slate-700"
+                      }`}
+                    />
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">{exp.role}</h4>
+                      {exp.isCurrent && (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                          Current Position
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{exp.company}</p>
+                    <p className="text-xs font-mono text-slate-400">{exp.duration}</p>
                   </div>
-                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{exp.company}</p>
-                  <p className="text-xs font-mono text-slate-400">{exp.duration}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-400 text-xs font-medium">
+                No work experience timeline provided in CV.
+              </div>
+            )}
           </div>
         )}
 
@@ -705,7 +681,13 @@ export default function EmployeeProfilePage() {
               <div className="pt-4">
                 <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Live Document PDF Preview</h4>
                 <div className="h-[550px] w-full rounded-2xl border border-slate-200 overflow-hidden dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                  <iframe src={pdfUrl} className="h-full w-full border-none" title="Candidate PDF Document" />
+                  {safePdfPreviewUrl ? (
+                    <iframe src={safePdfPreviewUrl} className="h-full w-full border-none" title="Candidate PDF Document" />
+                  ) : (
+                    <div className="flex items-center justify-center h-full text-slate-400 text-xs font-mono">
+                      Loading document preview...
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -718,29 +700,24 @@ export default function EmployeeProfilePage() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                 <Info className="h-4.5 w-4.5 text-[#0066ff]" />
-                <span>Other Details & Extracted CV JSON Data</span>
+                <span>Other Details & Identified Skills</span>
               </h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyJSON}
-                leftIcon={copiedJSON ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
-                className="text-xs font-bold rounded-xl"
-              >
-                {copiedJSON ? "Copied JSON" : "Copy JSON Data"}
-              </Button>
             </div>
 
             {/* Skills Badges */}
             <div>
               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Identified Skills & Expertise</h4>
-              <div className="flex flex-wrap gap-2">
-                {jsonData.other.skills.map((skill, i) => (
-                  <span key={i} className="px-3 py-1 rounded-xl text-xs font-bold bg-[#e8f1ff] text-[#0066ff] border border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900">
-                    {skill}
-                  </span>
-                ))}
-              </div>
+              {jsonData.other.skills.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {jsonData.other.skills.map((skill, i) => (
+                    <span key={i} className="px-3 py-1 rounded-xl text-xs font-bold bg-[#e8f1ff] text-[#0066ff] border border-blue-200/60 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 font-medium italic">No specific skills extracted from CV.</p>
+              )}
             </div>
 
             {/* Raw Extracted Text */}
@@ -748,14 +725,6 @@ export default function EmployeeProfilePage() {
               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Raw Extracted CV Text</h4>
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-wrap max-h-96 overflow-y-auto leading-relaxed">
                 {jsonData.other.rawText}
-              </div>
-            </div>
-
-            {/* Complete Stored JSON Object */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Stored Candidate JSON Data</h4>
-              <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-400 overflow-x-auto max-h-96">
-                <pre>{JSON.stringify(jsonData, null, 2)}</pre>
               </div>
             </div>
           </div>

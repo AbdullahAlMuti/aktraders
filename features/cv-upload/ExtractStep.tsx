@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Check, Copy, FileText, ArrowLeft, ArrowRight, Loader2, Code2, AlertTriangle, Cpu, Database, Sparkles, FileCheck, Layers } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Check, FileText, ArrowLeft, ArrowRight, Loader2, AlertTriangle, Cpu, Sparkles, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cvService, MinimalCVRecord } from "@/services/cv.service";
 
@@ -17,9 +17,8 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
   const [progress, setProgress] = useState<number>(0);
   const [stageMessage, setStageMessage] = useState<string>("Reading PDF Document...");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"text" | "json" | "pdf">("text");
-  const [copiedJSON, setCopiedJSON] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const uploadPromiseRef = useRef<Promise<any> | null>(null);
 
   useEffect(() => {
     if (file) {
@@ -64,47 +63,39 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
     }
   }, [progress]);
 
-  // Upload & Extraction API Call
+  // Upload & Extraction API Call with Promise Cache to support React 18 Strict Mode cleanly
   useEffect(() => {
-    let isMounted = true;
-    async function processUpload() {
-      if (!file) return;
+    if (!file) return;
 
-      setStatusState("Extracting");
-      setErrorMessage(null);
+    let active = true;
+    setStatusState("Extracting");
+    setErrorMessage(null);
 
-      const result = await cvService.uploadCV(file);
-
-      if (isMounted) {
-        if (result.success && result.record) {
-          setProgress(100);
-          setTimeout(() => {
-            if (isMounted) {
-              setExtractedRecord(result.record!);
-              setStatusState("Completed");
-            }
-          }, 300);
-        } else {
-          setStatusState("Failed");
-          setErrorMessage(result.error || "Failed to process PDF CV.");
-        }
-      }
+    if (!uploadPromiseRef.current) {
+      uploadPromiseRef.current = cvService.uploadCV(file);
     }
 
-    processUpload();
+    uploadPromiseRef.current.then((result) => {
+      if (!active) return;
+
+      if (result.success && result.record) {
+        setProgress(100);
+        setTimeout(() => {
+          if (active) {
+            setExtractedRecord(result.record!);
+            setStatusState("Completed");
+          }
+        }, 300);
+      } else {
+        setStatusState("Failed");
+        setErrorMessage(result.error || "Failed to process PDF CV.");
+      }
+    });
 
     return () => {
-      isMounted = false;
+      active = false;
     };
   }, [file]);
-
-  const handleCopyJSON = () => {
-    if (extractedRecord) {
-      navigator.clipboard.writeText(JSON.stringify(extractedRecord, null, 2));
-      setCopiedJSON(true);
-      setTimeout(() => setCopiedJSON(false), 2000);
-    }
-  };
 
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-[#111c38] space-y-6">
@@ -147,10 +138,8 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
       {/* Progress & Percentage Animation View */}
       {statusState === "Extracting" && (
         <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6 bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-          {/* Subtle Background Glow */}
           <div className="absolute inset-0 bg-gradient-to-tr from-[#0066ff]/5 via-transparent to-purple-500/5 pointer-events-none" />
 
-          {/* Animated Scanning Scanner Card */}
           <div className="relative">
             <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-xl dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
               <FileText className="h-10 w-10 text-[#0066ff] animate-pulse" />
@@ -161,7 +150,6 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
             </div>
           </div>
 
-          {/* Large Live Percentage Counter */}
           <div className="space-y-1">
             <div className="text-4xl font-extrabold font-mono tracking-tight text-slate-900 dark:text-white">
               {progress}<span className="text-2xl text-[#0066ff]">%</span>
@@ -172,7 +160,6 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
             </p>
           </div>
 
-          {/* Animated Progress Bar */}
           <div className="w-full max-w-md space-y-2">
             <div className="h-3 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden p-0.5 shadow-inner">
               <div
@@ -203,105 +190,65 @@ export function ExtractStep({ file, onNext, onBack }: ExtractStepProps) {
         </div>
       )}
 
-      {/* Main View Area when Completed */}
+      {/* Side-by-Side View when Completed (Left: Original PDF, Right: Extracted Clean Text) */}
       {statusState === "Completed" && (
-        <>
-          {/* Tab Selection Navigation */}
-          <div className="flex items-center space-x-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <button
-              type="button"
-              onClick={() => setActiveTab("text")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === "text"
-                  ? "bg-[#0066ff] text-white shadow-md shadow-[#0066ff]/20"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-              }`}
-            >
-              Extracted Clean Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("json")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
-                activeTab === "json"
-                  ? "bg-[#0066ff] text-white shadow-md shadow-[#0066ff]/20"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-              }`}
-            >
-              <Code2 className="h-4 w-4" />
-              <span>Minimal JSON</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("pdf")}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                activeTab === "pdf"
-                  ? "bg-[#0066ff] text-white shadow-md shadow-[#0066ff]/20"
-                  : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-              }`}
-            >
-              Original PDF File
-            </button>
-          </div>
-
-          {/* Tab Content Display */}
-          <div className="min-h-[350px]">
-            {activeTab === "text" && (
-              <div className="space-y-4">
-                {extractedRecord && (
-                  <>
-                    <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/50 flex items-center justify-between">
-                      <div>
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Candidate Name</span>
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">{extractedRecord.candidateName}</h4>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Database Record ID</span>
-                        <p className="text-sm font-mono font-bold text-[#0066ff] dark:text-blue-400">{extractedRecord.id}</p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950 font-mono text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap max-h-[400px] overflow-y-auto shadow-inner">
-                      {extractedRecord.extractedText}
-                    </div>
-                  </>
-                )}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column: Original PDF Document View */}
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-[#0066ff]" />
+                  Original PDF View
+                </span>
+                <span className="text-[11px] font-medium text-slate-400">
+                  {file?.name || "Uploaded PDF"}
+                </span>
               </div>
-            )}
-
-            {activeTab === "json" && (
-              <div className="relative">
-                {extractedRecord && (
-                  <>
-                    <div className="absolute right-3 top-3 z-10">
-                      <button
-                        type="button"
-                        onClick={handleCopyJSON}
-                        className="flex items-center space-x-1.5 rounded-xl bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-200 hover:bg-slate-700 transition-colors shadow-sm"
-                      >
-                        {copiedJSON ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
-                        <span>{copiedJSON ? "Copied" : "Copy JSON"}</span>
-                      </button>
-                    </div>
-                    <pre className="rounded-2xl border border-slate-800 bg-slate-950 p-5 font-mono text-xs text-emerald-400 overflow-x-auto max-h-[400px]">
-                      {JSON.stringify(extractedRecord, null, 2)}
-                    </pre>
-                  </>
-                )}
-              </div>
-            )}
-
-            {activeTab === "pdf" && (
-              <div className="h-[450px] w-full rounded-2xl border border-slate-200 overflow-hidden dark:border-slate-800">
+              <div className="h-[520px] w-full rounded-2xl border border-slate-200 overflow-hidden dark:border-slate-800 shadow-inner bg-slate-100 dark:bg-slate-900">
                 {previewUrl ? (
                   <iframe src={previewUrl} className="h-full w-full border-none" title="Original PDF Viewer" />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-slate-400 text-xs font-medium">No PDF preview available</div>
+                  <div className="flex items-center justify-center h-full text-slate-400 text-xs font-medium">
+                    No PDF preview available
+                  </div>
                 )}
               </div>
-            )}
+            </div>
+
+            {/* Right Column: Extracted Clean Text View */}
+            <div className="flex flex-col space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <FileCheck className="h-4 w-4 text-emerald-500" />
+                  Extracted Clean Text
+                </span>
+                <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900">
+                  Saved in Backend DB
+                </span>
+              </div>
+
+              {extractedRecord && (
+                <div className="flex flex-col h-[520px] space-y-3">
+                  <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/60 flex items-center justify-between shrink-0">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Candidate Name</span>
+                      <h4 className="text-base font-extrabold text-slate-900 dark:text-slate-100">{extractedRecord.candidateName}</h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Database Record ID</span>
+                      <p className="text-xs font-mono font-bold text-[#0066ff] dark:text-blue-400">{extractedRecord.id}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-950 font-mono text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap overflow-y-auto shadow-inner">
+                    {extractedRecord.extractedText}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Footer Navigation Buttons */}

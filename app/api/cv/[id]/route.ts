@@ -41,3 +41,24 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ success: false, error: "Failed to fetch CV record" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "Record ID is required" }, { status: 400 });
+    }
+
+    const { error } = await supabase.from("cv_records").delete().eq("id", id);
+
+    if (error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: "Record deleted successfully" });
+  } catch (err: any) {
+    console.error("CV Delete API error:", err);
+    return NextResponse.json({ success: false, error: "Failed to delete CV record" }, { status: 500 });
+  }
+}

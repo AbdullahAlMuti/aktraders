@@ -107,7 +107,7 @@ export function Header({ title = "Dashboard", subtitle = "Welcome, Admin User" }
                 {searchResults.map((item) => (
                   <Link
                     key={item.id}
-                    href={`/cv-upload/${item.id}`}
+                    href={`/profile?id=${item.id}`}
                     onClick={() => setShowSearchResults(false)}
                     className="flex items-center justify-between px-4 py-3 hover:bg-blue-50/50 dark:hover:bg-slate-800/60 transition-colors group"
                   >

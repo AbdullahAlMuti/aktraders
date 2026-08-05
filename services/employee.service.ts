@@ -50,64 +50,24 @@ function parseCandidateDetails(candidateName: string, text: string) {
 
 export const employeeService = {
   async getEmployees(params: EmployeeFilterState & { page?: number; limit?: number }): Promise<PaginatedResponse<Employee>> {
-    const supabase = createClient();
     const page = params.page || 1;
     const limit = params.limit || 10;
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+    const search = params.search || "";
 
     try {
-      let query = supabase.from("cv_records").select("*", { count: "exact" });
-
-      if (params.search && params.search.trim() !== "") {
-        const s = params.search.trim();
-        query = query.ilike("candidate_name", `%${s}%`);
-      }
-
-      query = query.range(from, to).order("created_at", { ascending: false });
-
-      const { data, count, error } = await query;
-
-      if (!error && data) {
-        const formattedEmployees: Employee[] = data.map((item: any) => {
-          const parsed = parseCandidateDetails(item.candidate_name, item.extracted_text);
-          return {
-            id: item.id,
-            name: item.candidate_name,
-            email: parsed.email,
-            phone: parsed.phone,
-            department: parsed.department,
-            designation: parsed.designation,
-            status: "active",
-            joiningDate: item.created_at ? new Date(item.created_at).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-            cvFileName: item.original_file_name,
-            cvFileSize: "PDF Document",
-            avatarUrl: undefined,
-            cvData: {
-              id: item.id,
-              candidateName: item.candidate_name,
-              extractedText: item.extracted_text,
-              originalFileName: item.original_file_name,
-              originalPdfUrl: item.original_pdf_url,
-              uploadedAt: item.created_at,
-            },
-          };
-        });
-
-        const totalRecords = count !== null ? count : formattedEmployees.length;
-
+      const res = await fetch(`/api/employees?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}&_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
         return {
-          data: formattedEmployees,
-          meta: {
-            total: totalRecords,
-            page,
-            limit,
-            totalPages: totalRecords > 0 ? Math.ceil(totalRecords / limit) : 0,
-          },
+          data: json.data || [],
+          meta: json.meta || { total: 0, page, limit, totalPages: 0 },
         };
       }
     } catch (e) {
-      console.error("Error fetching cv_records from Supabase:", e);
+      console.error("Error fetching employees from API:", e);
     }
 
     return {
@@ -170,5 +130,46 @@ export const employeeService = {
       cvFileSize: data.cvFileSize,
       cvData: data.cvData,
     };
+  },
+
+  async deleteEmployee(id: string): Promise<boolean> {
+    try {
+      const res = await fetch(`/api/cv/${id}`, {
+        method: "DELETE",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return true;
+      }
+      console.error("Server DELETE error:", data.error);
+      return false;
+    } catch (e) {
+      console.error("Error deleting employee:", e);
+      return false;
+    }
+  },
+
+  async deleteMultipleEmployees(ids: string[]): Promise<boolean> {
+    if (!ids || ids.length === 0) return true;
+    try {
+      const res = await fetch("/api/cv/delete-bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
+        body: JSON.stringify({ ids }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        return true;
+      }
+      console.error("Server bulk DELETE error:", data.error);
+      return false;
+    } catch (e) {
+      console.error("Error bulk deleting employees:", e);
+      return false;
+    }
   },
 };

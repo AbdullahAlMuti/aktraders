@@ -26,7 +26,10 @@ export const cvService = {
 
   async searchCandidates(query: string): Promise<Array<Omit<MinimalCVRecord, "extractedText">>> {
     try {
-      const res = await fetch(`/api/cv/search?query=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/cv/search?query=${encodeURIComponent(query)}&_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       return data.results || [];
     } catch (err) {
@@ -37,7 +40,10 @@ export const cvService = {
 
   async getCVById(id: string): Promise<MinimalCVRecord | null> {
     try {
-      const res = await fetch(`/api/cv/${id}`);
+      const res = await fetch(`/api/cv/${id}?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
       const data = await res.json();
       if (data.success && data.record) {
         return data.record;

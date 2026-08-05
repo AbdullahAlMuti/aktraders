@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
+import { extractCvWithAI } from "@/lib/ai-provider";
 import fs from "fs";
 import path from "path";
 import PDFParser from "pdf2json";
@@ -12,13 +13,61 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const pdfParser = new PDFParser(null, true);
-    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData.parserError));
-    pdfParser.on("pdfParser_dataReady", () => {
+    pdfParser.on("pdfParser_dataError", () => resolve(""));
+    pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
       try {
-        const rawText = pdfParser.getRawTextContent() || "";
-        const cleanText = rawText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ").trim();
+        let fullText = "";
+        if (pdfData && pdfData.Pages) {
+          for (const page of pdfData.Pages) {
+            let pageText = "";
+            let lastY = -1;
+            if (page.Texts) {
+              for (const textObj of page.Texts) {
+                const y = textObj.y;
+                let textStr = "";
+                if (textObj.R) {
+                  for (const run of textObj.R) {
+                    if (run.T) {
+                      try {
+                        textStr += decodeURIComponent(run.T);
+                      } catch {
+                        textStr += run.T;
+                      }
+                    }
+                  }
+                }
+                if (lastY !== -1 && Math.abs(y - lastY) > 0.3) {
+                  pageText += "\n";
+                } else if (pageText.length > 0 && !pageText.endsWith("\n") && !pageText.endsWith(" ")) {
+                  pageText += " ";
+                }
+                pageText += textStr;
+                lastY = y;
+              }
+            }
+            fullText += pageText + "\n\n";
+          }
+        }
+
+        if (!fullText.trim()) {
+          const rawText = pdfParser.getRawTextContent() || "";
+          try {
+            fullText = decodeURIComponent(rawText);
+          } catch {
+            fullText = rawText;
+          }
+        }
+
+        const cleanText = fullText
+          .replace(/----------------Page \(\d+\) Break----------------/g, "")
+          .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, " ")
+          .replace(/ +/g, " ")
+          .replace(/\n +/g, "\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
         resolve(cleanText);
       } catch (e) {
         resolve("");
@@ -107,6 +156,7 @@ export async function POST(req: NextRequest) {
 
     let candidateName = "";
     let extractedText = "";
+    let structuredData: any = null;
 
     // 1. Ultra-Fast High-Speed Local PDF Text Extraction (~300ms)
     try {
@@ -115,41 +165,19 @@ export async function POST(req: NextRequest) {
       console.warn("pdf2json extraction warning:", pdfErr);
     }
 
-    // 2. High-Speed Gemini 2.5 Flash AI Enhancement (1.2s max timeout guard)
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey) {
-      try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-        const documentPart = {
-          inlineData: {
-            data: base64Data,
-            mimeType: "application/pdf",
-          },
-        };
-
-        const prompt = `Read this CV PDF and extract all readable information as clean plain text. Identify candidateName. Return valid JSON with candidateName and extractedText.`;
-
-        // 1.2s max timeout race so slow network calls never block response
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini AI fast timeout")), 1200)
-        );
-
-        const aiPromise = model.generateContent([prompt, documentPart]);
-        const result: any = await Promise.race([aiPromise, timeoutPromise]);
-
-        const responseText = result.response.text();
-        const cleanedJSONText = responseText.replace(/```json|```/g, "").trim();
-        const aiJSON = JSON.parse(cleanedJSONText);
-
+    // 2. Universal AI Extraction (TokenRouter, OpenAI, DeepSeek, Groq, Claude, Ollama, or Gemini)
+    try {
+      const mimeType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+      const aiJSON = await extractCvWithAI(base64Data, mimeType, extractedText);
+      if (aiJSON) {
+        candidateName = aiJSON.candidateName || "";
         if (aiJSON.extractedText && aiJSON.extractedText.trim().length > 0) {
-          candidateName = aiJSON.candidateName || "";
           extractedText = aiJSON.extractedText.trim();
         }
-      } catch (geminiError: any) {
-        // Fall back to instant local extraction text
+        structuredData = aiJSON;
       }
+    } catch (aiError: any) {
+      console.warn("AI extraction notice:", aiError.message || aiError);
     }
 
     // Quality Validation
@@ -165,13 +193,29 @@ export async function POST(req: NextRequest) {
       id: uniqueId,
       candidate_name: candidateName,
       extracted_text: extractedText,
+      structured_data: structuredData ? JSON.stringify(structuredData) : null,
       original_file_name: file.name,
       original_pdf_url: originalPdfUrl,
       created_at: new Date().toISOString(),
     };
 
     // Save Record to Supabase Database (`public.cv_records`)
-    const { error: dbError } = await supabase.from("cv_records").insert(record);
+    let { error: dbError } = await supabase.from("cv_records").insert(record);
+
+    if (dbError) {
+      console.warn("Primary Supabase DB Insert Warning:", dbError.message);
+      // Fallback insert without structured_data column if Supabase schema cache delay occurs
+      const fallbackRecord = {
+        id: uniqueId,
+        candidate_name: candidateName,
+        extracted_text: extractedText,
+        original_file_name: file.name,
+        original_pdf_url: originalPdfUrl,
+        created_at: new Date().toISOString(),
+      };
+      const retryResult = await supabase.from("cv_records").insert(fallbackRecord);
+      dbError = retryResult.error;
+    }
 
     if (dbError) {
       console.error("Supabase DB Insert Error:", dbError);
@@ -186,6 +230,7 @@ export async function POST(req: NextRequest) {
         id: record.id,
         candidateName: record.candidate_name,
         extractedText: record.extracted_text,
+        structuredData: structuredData,
         originalFileName: record.original_file_name,
         originalPdfUrl: record.original_pdf_url,
         uploadedAt: record.created_at,

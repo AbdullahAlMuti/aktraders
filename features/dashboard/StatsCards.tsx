@@ -11,12 +11,22 @@ export function StatsCards() {
   const [totalRecords, setTotalRecords] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchStats = React.useCallback(() => {
     cvService.searchCandidates("").then((res) => {
       setTotalRecords(res.length);
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+    window.addEventListener("focus", fetchStats);
+    const interval = setInterval(fetchStats, 3000);
+    return () => {
+      window.removeEventListener("focus", fetchStats);
+      clearInterval(interval);
+    };
+  }, [fetchStats]);
 
   const stats = [
     {

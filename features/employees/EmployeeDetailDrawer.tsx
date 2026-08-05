@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { Employee } from "@/types/employee.types";
+import { safeParseStructuredJSON } from "@/lib/cv-json-unwrapper";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/hooks/use-toast";
+import { usePdfBlobUrl } from "@/utils/pdf-preview";
 import Link from "next/link";
 import {
   X,
@@ -22,29 +24,28 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-interface EmployeeDetailDrawerProps {
+export interface EmployeeDetailDrawerProps {
   employee: Employee | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDetailDrawerProps) {
-  const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"details" | "pdf" | "json">("details");
+  const [activeTab, setActiveTab] = useState<"details" | "pdf">("details");
+
+  const cvData = employee?.cvData || {};
+  const structured = safeParseStructuredJSON(cvData.structuredData || cvData.structured_data);
+
+  const rawExperience = structured?.experience || structured?.workExperience || cvData.workExperience;
+  const workExperience: any[] = Array.isArray(rawExperience) ? rawExperience : [];
+
+  const rawSkills = structured?.other?.skills || structured?.skills || cvData.skills;
+  const skills: string[] = Array.isArray(rawSkills) ? rawSkills : [];
+
+  const pdfUrl = cvData.originalPdfUrl || cvData.original_pdf_url;
+  const safePdfUrl = usePdfBlobUrl(pdfUrl);
 
   if (!isOpen || !employee) return null;
-
-  const cvData = employee.cvData || {};
-  const workExperience = cvData.workExperience || [];
-  const skills = cvData.skills || [];
-  const pdfUrl = cvData.originalPdfUrl || cvData.original_pdf_url;
-
-  const handleCopyJSON = () => {
-    navigator.clipboard.writeText(JSON.stringify(employee, null, 2));
-    setCopied(true);
-    toast.success("JSON Copied", "Employee record JSON copied to clipboard");
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -98,16 +99,6 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
             }`}
           >
             Original PDF Preview
-          </button>
-          <button
-            onClick={() => setActiveTab("json")}
-            className={`pb-2 border-b-2 transition-all ${
-              activeTab === "json"
-                ? "border-[#533afd] text-[#533afd] dark:text-white"
-                : "border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-slate-200"
-            }`}
-          >
-            Extracted JSON Payload
           </button>
         </div>
 
@@ -204,8 +195,8 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
 
           {activeTab === "pdf" && (
             <div className="h-[500px] w-full rounded-xl border border-neutral-200 overflow-hidden dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-              {pdfUrl ? (
-                <iframe src={pdfUrl} className="h-full w-full border-none" title="Original PDF Document Preview" />
+              {safePdfUrl ? (
+                <iframe src={safePdfUrl} className="h-full w-full border-none" title="Original PDF Document Preview" />
               ) : (
                 <div className="flex flex-col items-center justify-center h-full text-slate-400">
                   <FileText className="h-10 w-10 mb-2" />
@@ -214,21 +205,10 @@ export function EmployeeDetailDrawer({ employee, isOpen, onClose }: EmployeeDeta
               )}
             </div>
           )}
-
-          {activeTab === "json" && (
-            <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 font-mono text-[11px] text-emerald-400 overflow-auto max-h-[500px]">
-              <pre className="whitespace-pre-wrap break-words leading-relaxed">
-                {JSON.stringify(employee, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
 
         {/* Drawer Footer */}
-        <div className="p-4 border-t border-neutral-100 dark:border-slate-800 flex items-center justify-between bg-neutral-50/50 dark:bg-slate-900/50">
-          <Button variant="outline" onClick={handleCopyJSON} leftIcon={copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}>
-            {copied ? "Copied!" : "Copy Record JSON"}
-          </Button>
+        <div className="p-4 border-t border-neutral-100 dark:border-slate-800 flex items-center justify-end bg-neutral-50/50 dark:bg-slate-900/50">
           <Button variant="primary" onClick={onClose}>
             Close
           </Button>

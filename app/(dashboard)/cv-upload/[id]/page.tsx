@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileText, Calendar, Download, ExternalLink, Loader2, User, Database, Code2, Check, Copy } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, Download, Loader2, User, FileCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cvService, MinimalCVRecord } from "@/services/cv.service";
+import { usePdfBlobUrl } from "@/utils/pdf-preview";
 import Link from "next/link";
 
 export default function CVRecordDetailPage() {
@@ -15,8 +16,7 @@ export default function CVRecordDetailPage() {
   const [record, setRecord] = useState<MinimalCVRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"text" | "json" | "pdf">("text");
-  const [copiedJSON, setCopiedJSON] = useState(false);
+  const safePdfUrl = usePdfBlobUrl(record?.originalPdfUrl);
 
   useEffect(() => {
     async function loadRecord() {
@@ -33,14 +33,6 @@ export default function CVRecordDetailPage() {
 
     loadRecord();
   }, [id]);
-
-  const handleCopyJSON = () => {
-    if (record) {
-      navigator.clipboard.writeText(JSON.stringify(record, null, 2));
-      setCopiedJSON(true);
-      setTimeout(() => setCopiedJSON(false), 2000);
-    }
-  };
 
   if (loading) {
     return (
@@ -68,7 +60,7 @@ export default function CVRecordDetailPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-6xl mx-auto pb-12">
       {/* Back Navigation Bar */}
       <div className="flex items-center justify-between">
         <button
@@ -89,8 +81,8 @@ export default function CVRecordDetailPage() {
       </div>
 
       {/* Candidate Header Card */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400 font-bold text-xl shadow-inner">
               <User className="h-7 w-7" />
@@ -115,83 +107,45 @@ export default function CVRecordDetailPage() {
             <span className="text-blue-600 dark:text-blue-400 font-bold">{record.id}</span>
           </div>
         </div>
-
-        {/* View Switcher Tabs */}
-        <div className="flex items-center space-x-2 pt-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab("text")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
-              activeTab === "text"
-                ? "bg-blue-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-            }`}
-          >
-            Complete Extracted CV Text
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("json")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors flex items-center space-x-1.5 ${
-              activeTab === "json"
-                ? "bg-blue-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-            }`}
-          >
-            <Code2 className="h-3.5 w-3.5" />
-            <span>Stored Minimal JSON</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("pdf")}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${
-              activeTab === "pdf"
-                ? "bg-blue-600 text-white shadow-sm"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400"
-            }`}
-          >
-            Original PDF Document
-          </button>
-        </div>
       </div>
 
-      {/* Main Content Area */}
-      {activeTab === "text" && (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2 dark:border-slate-800">
-            Complete Extracted CV Text
-          </h3>
-          <div className="font-mono text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap">
+      {/* Side-by-Side Dual View: Left = Original PDF, Right = Extracted Clean Text */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Original PDF Document View */}
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <FileText className="h-4 w-4 text-[#0066ff]" />
+              Original PDF Document
+            </span>
+          </div>
+          <div className="h-[650px] w-full rounded-2xl border border-slate-200 overflow-hidden dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+            {safePdfUrl ? (
+              <iframe src={safePdfUrl} className="h-full w-full border-none" title="Original PDF Document" />
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-400 text-xs font-mono">
+                Loading PDF document...
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right: Extracted Clean Text View */}
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <FileCheck className="h-4 w-4 text-emerald-500" />
+              Extracted Clean Text
+            </span>
+            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900">
+              Saved in Backend Database
+            </span>
+          </div>
+          <div className="h-[650px] w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 font-mono text-xs leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-wrap overflow-y-auto">
             {record.extractedText}
           </div>
         </div>
-      )}
-
-      {activeTab === "json" && (
-        <div className="relative rounded-xl border border-slate-800 bg-slate-950 p-6 shadow-sm">
-          <div className="absolute right-4 top-4 z-10">
-            <button
-              type="button"
-              onClick={handleCopyJSON}
-              className="flex items-center space-x-1.5 rounded-lg bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 transition-colors"
-            >
-              {copiedJSON ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copiedJSON ? "Copied" : "Copy JSON"}</span>
-            </button>
-          </div>
-          <pre className="font-mono text-xs text-emerald-400 overflow-x-auto">
-            {JSON.stringify(record, null, 2)}
-          </pre>
-        </div>
-      )}
-
-      {activeTab === "pdf" && (
-        <div className="h-[650px] w-full rounded-xl border border-slate-200 overflow-hidden dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-          <iframe src={record.originalPdfUrl} className="h-full w-full border-none" title="Original PDF Viewer" />
-        </div>
-      )}
+      </div>
     </div>
   );
 }

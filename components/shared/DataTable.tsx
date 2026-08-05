@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export interface Column<T> {
-  header: string;
+  header: string | React.ReactNode;
   accessorKey?: keyof T;
   cell?: (item: T, index: number) => React.ReactNode;
   className?: string;
