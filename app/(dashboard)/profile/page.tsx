@@ -389,12 +389,12 @@ export default function EmployeeProfilePage() {
                   <span className="col-span-6 font-bold text-slate-900 dark:text-white">{jsonData.personal.fullName}</span>
                 </div>
                 <div className="grid grid-cols-12 items-center">
-                  <span className="col-span-5 text-slate-500 font-medium">Father's Name</span>
+                  <span className="col-span-5 text-slate-500 font-medium">Father&apos;s Name</span>
                   <span className="col-span-1 text-slate-400 font-bold">:</span>
                   <span className="col-span-6 font-bold text-slate-900 dark:text-white">{jsonData.personal.fatherName}</span>
                 </div>
                 <div className="grid grid-cols-12 items-center">
-                  <span className="col-span-5 text-slate-500 font-medium">Mother's Name</span>
+                  <span className="col-span-5 text-slate-500 font-medium">Mother&apos;s Name</span>
                   <span className="col-span-1 text-slate-400 font-bold">:</span>
                   <span className="col-span-6 font-bold text-slate-900 dark:text-white">{jsonData.personal.motherName}</span>
                 </div>

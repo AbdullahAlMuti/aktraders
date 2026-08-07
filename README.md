@@ -21,7 +21,7 @@ A high-performance Next.js application designed around a streamlined CV workflow
    }
    ```
 4. **Supabase Database Integration**: Stores CV records in `public.cv_records` table on Supabase.
-5. **Original PDF Preservation**: Stores original uploaded PDFs securely under `/public/uploads/cvs/`.
+5. **Original PDF Preservation**: Stores original uploaded documents in private object storage; production CVs must never be committed or served from `/public/`.
 6. **Live Candidate Search**: Header search bar performs instant case-insensitive search by candidate name against Supabase.
 7. **Complete CV & PDF Viewer**: Dedicated candidate CV page displaying complete extracted text and an inline viewer for the original PDF document.
 
@@ -40,37 +40,23 @@ A high-performance Next.js application designed around a streamlined CV workflow
 
 ## ⚙️ Environment Configuration
 
-Create a `.env.local` file in the root directory:
+`.env.example` থেকে একটি untracked `.env.local` তৈরি করুন এবং deployment secret manager-এ real credentials রাখুন। কোনো API key, service-role credential বা private storage credential repository-তে commit করবেন না।
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://qbawcgxjvjkvtgtczseo.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+AI_PROVIDER=gemini
 GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=your_gemini_model
 ```
 
 ---
 
-## 🗄️ Supabase Database Schema
+## 🗄️ Supabase Database & Storage
 
-To set up the database table, execute the following SQL in your Supabase SQL Editor:
+Production schema, Row Level Security policies এবং private Storage buckets versioned Supabase migrations দিয়ে পরিচালিত হবে। Anonymous public read, upload বা delete policy ব্যবহার করবেন না। CV এবং profile image sensitive PII হিসেবে private bucket-এ রাখতে হবে এবং authorized request-এর জন্য short-lived signed URL দিতে হবে।
 
-```sql
-CREATE TABLE IF NOT EXISTS public.cv_records (
-    id TEXT PRIMARY KEY,
-    candidate_name TEXT NOT NULL,
-    extracted_text TEXT NOT NULL,
-    original_file_name TEXT NOT NULL,
-    original_pdf_url TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable Row Level Security (RLS)
-ALTER TABLE public.cv_records ENABLE ROW LEVEL SECURITY;
-
--- Allow public reads and inserts
-CREATE POLICY "Allow public read access" ON public.cv_records FOR SELECT USING (true);
-CREATE POLICY "Allow public insert access" ON public.cv_records FOR INSERT WITH CHECK (true);
-```
+Legacy `public.cv_records` data migration complete না হওয়া পর্যন্ত compatibility source হিসেবে রাখা হবে; নতুন deployment-এ normalized employee/profile schema ব্যবহার করা হবে।
 
 ---
 

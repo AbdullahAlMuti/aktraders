@@ -175,7 +175,7 @@ export async function extractCvWithAI(
  * TokenRouter API Integration (e.g. moonshotai/kimi-k3-free, deepseek, etc.)
  */
 async function extractWithTokenRouter(rawText: string): Promise<ExtractedCvData | null> {
-  const apiKey = process.env.TOKENROUTER_API_KEY || "sk-tyzYuG532iPNxzpg8DrbUp4RgTxgQxNEiUsKWXZxLZsskUMu";
+  const apiKey = process.env.TOKENROUTER_API_KEY;
   const baseUrl = process.env.TOKENROUTER_BASE_URL || "https://api.tokenrouter.com/v1";
   const modelName = process.env.TOKENROUTER_MODEL || "moonshotai/kimi-k3-free";
 

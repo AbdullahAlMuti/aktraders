@@ -22,6 +22,10 @@ yarn-error.log*
 .env*.local
 .env
 
+# Sensitive uploaded documents must never be committed or served from public/
+/public/uploads/
+/uploads/
+
 # vercel
 .vercel
 
