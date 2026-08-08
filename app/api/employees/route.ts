@@ -15,15 +15,18 @@ export async function GET(req: NextRequest) {
     const seenIds = new Set<string>();
     const seenEmails = new Set<string>();
 
-    const addProfile = (profile: FullEmployeeProfile) => {
+    // Real employees are distinct people even when CVs share template emails;
+    // email-based suppression only applies to legacy cv_records (which may be
+    // older copies of someone who already has an employees row).
+    const addProfile = (profile: FullEmployeeProfile, suppressByEmail: boolean) => {
+      const email = profile.email?.trim().toLowerCase();
       if (profile.deleted) {
         seenIds.add(profile.employeeId);
         seenIds.add(profile.id);
         return;
       }
       if (seenIds.has(profile.employeeId) || seenIds.has(profile.id)) return;
-      const email = profile.email?.trim().toLowerCase();
-      if (email && seenEmails.has(email)) return;
+      if (suppressByEmail && email && seenEmails.has(email)) return;
       seenIds.add(profile.employeeId);
       seenIds.add(profile.id);
       if (email) seenEmails.add(email);
@@ -40,7 +43,7 @@ export async function GET(req: NextRequest) {
         .limit(2000);
       if (!error && data) dbHealthy = true;
       for (const row of data || []) {
-        addProfile(profileFromEmployeeRow(row));
+        addProfile(profileFromEmployeeRow(row), false);
       }
     } catch (dbErr) {
       console.warn("Supabase employees fetch warning:", dbErr);
@@ -50,7 +53,7 @@ export async function GET(req: NextRequest) {
     try {
       const { data } = await supabase.from("cv_records").select("*").order("created_at", { ascending: false }).limit(2000);
       for (const item of data || []) {
-        addProfile(buildFullProfileFromRecord(item));
+        addProfile(buildFullProfileFromRecord(item), true);
       }
     } catch (dbErr) {
       console.warn("Supabase cv_records fetch warning:", dbErr);
@@ -61,7 +64,7 @@ export async function GET(req: NextRequest) {
     // serves stale data after out-of-band changes.
     if (!dbHealthy) {
       for (const profile of localEmployeeStore.values()) {
-        addProfile(profile);
+        addProfile(profile, true);
       }
     }
 

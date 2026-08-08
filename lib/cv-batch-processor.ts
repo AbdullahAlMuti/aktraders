@@ -508,7 +508,9 @@ export async function processCvBatch(
         // Supabase client initialization
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
+});
 
         const uniqueId = `cv-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         const originalPdfUrl = `data:${mimeType};base64,${base64}`;

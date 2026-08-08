@@ -15,7 +15,9 @@ export const dynamic = "force-dynamic";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
+});
 
 function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
   return new Promise((resolve) => {
