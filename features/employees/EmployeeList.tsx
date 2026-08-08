@@ -191,12 +191,18 @@ export function EmployeeList() {
           variant={
             item.status === "active"
               ? "success"
-              : item.status === "processing"
+              : item.status === "processing" || item.status === "review_required"
               ? "warning"
               : "secondary"
           }
         >
-          {item.status === "active" ? "Active" : item.status === "processing" ? "Processing" : "Pending"}
+          {item.status === "active"
+            ? "Active"
+            : item.status === "processing"
+            ? "Processing"
+            : item.status === "review_required"
+            ? "Needs Review"
+            : "Pending"}
         </Badge>
       ),
     },

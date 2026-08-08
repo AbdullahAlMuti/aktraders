@@ -5,6 +5,8 @@ import { extractCvWithAI } from "@/lib/ai-provider";
 import { extractAndSaveProfilePhoto } from "@/lib/cv-photo-extractor";
 import { findOrCreateEmployeeProfile } from "@/lib/employee-deduplication";
 import { parseCvTextToStructure, normalizeKerningText } from "@/lib/cv-batch-processor";
+import { validateExtraction } from "@/lib/extraction-validator";
+import { saveProfileToDb } from "@/lib/db-schema";
 import fs from "fs";
 import path from "path";
 import PDFParser from "pdf2json";
@@ -223,6 +225,19 @@ export async function POST(req: NextRequest) {
 
     const employeeProfile = upsertResult?.profile;
 
+    // Gate junk extractions: flag for manual review instead of saving silently.
+    let extractionOk = true;
+    if (employeeProfile) {
+      const validation = validateExtraction(structuredData || { candidateName }, file.name);
+      extractionOk = validation.ok;
+      if (!validation.ok) {
+        console.warn(`Extraction flagged for review (${file.name}):`, validation.reasons.join("; "));
+        employeeProfile.status = "review_required";
+        employeeProfile.employmentDetails.currentStatus = "review_required";
+        await saveProfileToDb(employeeProfile);
+      }
+    }
+
     // The cv_records table has no id/avatar columns, so stable identifiers and
     // the avatar reference are persisted inside the structured_data JSON.
     const enrichedStructuredData = {
@@ -265,6 +280,7 @@ export async function POST(req: NextRequest) {
         originalPdfUrl: record.original_pdf_url,
         avatarUrl: avatarUrl || employeeProfile?.avatarUrl,
         employeeProfile: employeeProfile,
+        needsReview: !extractionOk,
         uploadedAt: record.created_at,
       },
     });

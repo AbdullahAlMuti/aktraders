@@ -6,6 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 import { extractCvWithAI } from "./ai-provider";
 import { extractAndSaveProfilePhoto } from "./cv-photo-extractor";
 import { findOrCreateEmployeeProfile } from "./employee-deduplication";
+import { validateExtraction } from "./extraction-validator";
+import { saveProfileToDb } from "./db-schema";
 
 export interface BatchItemStatus {
   id: string;
@@ -536,6 +538,17 @@ export async function processCvBatch(
         }
 
         const employeeProfile = upsertResult?.profile;
+
+        // Gate junk extractions: flag for manual review instead of saving silently.
+        if (employeeProfile) {
+          const validation = validateExtraction(aiData || { candidateName }, file.name);
+          if (!validation.ok) {
+            console.warn(`Bulk extraction flagged for review (${file.name}):`, validation.reasons.join("; "));
+            employeeProfile.status = "review_required";
+            employeeProfile.employmentDetails.currentStatus = "review_required";
+            await saveProfileToDb(employeeProfile);
+          }
+        }
 
         // Stable identifiers and avatar reference live inside structured_data —
         // the cv_records table has no dedicated columns for them.
