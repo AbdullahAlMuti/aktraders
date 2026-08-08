@@ -207,6 +207,14 @@ async function extractWithAgentRouter(
 
   if (!apiKey) return null;
 
+  // AgentRouter's gateway only accepts requests that identify as a coding CLI
+  // client; without these headers every call is rejected with 401
+  // "unauthorized client detected" regardless of key validity.
+  const clientHeaders = {
+    "User-Agent": "claude-cli/1.0.83 (external, cli)",
+    "x-app": "cli",
+  };
+
   try {
     const isImage = mimeType.startsWith("image/");
     const isClaudeModel = modelName.toLowerCase().includes("claude");
@@ -232,9 +240,9 @@ async function extractWithAgentRouter(
           signal: AbortSignal.timeout(90000),
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": apiKey,
             Authorization: `Bearer ${apiKey}`,
             "anthropic-version": "2023-06-01",
+            ...clientHeaders,
           },
           body: JSON.stringify({
             model: modelName,
@@ -275,6 +283,7 @@ async function extractWithAgentRouter(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
+        ...clientHeaders,
       },
       body: JSON.stringify({
         model: modelName,
@@ -291,6 +300,7 @@ async function extractWithAgentRouter(
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
+          ...clientHeaders,
         },
         body: JSON.stringify({
           model: modelName,
@@ -413,6 +423,7 @@ async function extractWithOpenAI(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
+        ...clientHeaders,
       },
       body: JSON.stringify({
         model: modelName,
