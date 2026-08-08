@@ -423,7 +423,6 @@ async function extractWithOpenAI(
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        ...clientHeaders,
       },
       body: JSON.stringify({
         model: modelName,
