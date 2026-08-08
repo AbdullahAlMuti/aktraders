@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { deleteEmployeeEverywhere } from "@/lib/db-schema";
 
 export const dynamic = "force-dynamic";
 
@@ -16,21 +17,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "IDs array is required" }, { status: 400 });
     }
 
-    const { error, count } = await supabase
-      .from("cv_records")
-      .delete({ count: "exact" })
-      .in("id", ids);
-
-    if (error) {
-      console.error("Bulk Delete DB Error:", error);
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    let deletedCount = 0;
+    for (const id of ids) {
+      const ok = await deleteEmployeeEverywhere(id);
+      if (ok) deletedCount++;
     }
 
-    console.log(`Successfully bulk deleted ${count || ids.length} records from cv_records`);
+    if (deletedCount === 0) {
+      return NextResponse.json({ success: false, error: "No records could be deleted" }, { status: 500 });
+    }
+
+    console.log(`Successfully bulk deleted ${deletedCount} employee record(s)`);
 
     return NextResponse.json({
       success: true,
-      deletedCount: count || ids.length,
+      deletedCount,
     });
   } catch (err: any) {
     console.error("Bulk Delete API Error:", err);

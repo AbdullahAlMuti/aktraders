@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
 import { extractCvWithAI } from "@/lib/ai-provider";
+import { extractAndSaveProfilePhoto } from "@/lib/cv-photo-extractor";
+import { findOrCreateEmployeeProfile } from "@/lib/employee-deduplication";
+import { parseCvTextToStructure, normalizeKerningText } from "@/lib/cv-batch-processor";
 import fs from "fs";
 import path from "path";
 import PDFParser from "pdf2json";
@@ -185,54 +188,83 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unreadable PDF file. Could not extract text." }, { status: 422 });
     }
 
-    // Clean and validate Candidate Name
-    candidateName = cleanCandidateName(candidateName, extractedText, file.name);
+    // Local heuristic fallback when no AI provider produced structured data
+    if (!structuredData) {
+      structuredData = parseCvTextToStructure(extractedText, file.name);
+      candidateName = candidateName || structuredData.candidateName || "";
+    }
 
-    // Minimal JSON Record
+    // Clean and validate Candidate Name
+    candidateName = normalizeKerningText(cleanCandidateName(candidateName, extractedText, file.name));
+
+    // Photo Extraction Pipeline
+    let avatarUrl: string | undefined = undefined;
+    try {
+      avatarUrl = await extractAndSaveProfilePhoto(buffer, file.type || "application/pdf", file.name, uniqueId);
+    } catch (photoErr) {
+      console.warn("Photo extraction notice:", photoErr);
+    }
+
+    // Candidate Deduplication & Profile Upsert
+    let upsertResult;
+    try {
+      upsertResult = await findOrCreateEmployeeProfile(structuredData || { personal: { fullName: candidateName } }, {
+        id: uniqueId,
+        candidateName,
+        extractedText,
+        structuredData,
+        originalFileName: file.name,
+        originalPdfUrl,
+        avatarUrl,
+      });
+    } catch (dedupErr) {
+      console.warn("Deduplication notice:", dedupErr);
+    }
+
+    const employeeProfile = upsertResult?.profile;
+
+    // The cv_records table has no id/avatar columns, so stable identifiers and
+    // the avatar reference are persisted inside the structured_data JSON.
+    const enrichedStructuredData = {
+      ...(structuredData || {}),
+      employeeId: employeeProfile?.employeeId,
+      applicantId: employeeProfile?.applicantId,
+      cvNumber: employeeProfile?.cvNumber,
+      avatarUrl: avatarUrl || employeeProfile?.avatarUrl,
+    };
+
     const record = {
       id: uniqueId,
       candidate_name: candidateName,
       extracted_text: extractedText,
-      structured_data: structuredData ? JSON.stringify(structuredData) : null,
+      structured_data: JSON.stringify(enrichedStructuredData),
       original_file_name: file.name,
       original_pdf_url: originalPdfUrl,
       created_at: new Date().toISOString(),
     };
 
-    // Save Record to Supabase Database (`public.cv_records`)
-    let { error: dbError } = await supabase.from("cv_records").insert(record);
-
+    // Save raw CV record to Supabase (`public.cv_records`)
+    const { error: dbError } = await supabase.from("cv_records").insert(record);
     if (dbError) {
-      console.warn("Primary Supabase DB Insert Warning:", dbError.message);
-      // Fallback insert without structured_data column if Supabase schema cache delay occurs
-      const fallbackRecord = {
-        id: uniqueId,
-        candidate_name: candidateName,
-        extracted_text: extractedText,
-        original_file_name: file.name,
-        original_pdf_url: originalPdfUrl,
-        created_at: new Date().toISOString(),
-      };
-      const retryResult = await supabase.from("cv_records").insert(fallbackRecord);
-      dbError = retryResult.error;
+      console.warn("Supabase cv_records insert warning:", dbError.message);
     }
 
-    if (dbError) {
-      console.error("Supabase DB Insert Error:", dbError);
-      return NextResponse.json({ success: false, error: "Database save failed: " + dbError.message }, { status: 500 });
-    }
-
-    console.log(`CV Upload & Extraction completed in ${Date.now() - startTime}ms`);
+    console.log(`CV Upload & Extraction completed in ${Date.now() - startTime}ms. Employee Profile ID: ${employeeProfile?.id}`);
 
     return NextResponse.json({
       success: true,
       record: {
         id: record.id,
+        employeeId: employeeProfile?.employeeId,
+        applicantId: employeeProfile?.applicantId,
+        cvNumber: employeeProfile?.cvNumber,
         candidateName: record.candidate_name,
         extractedText: record.extracted_text,
         structuredData: structuredData,
         originalFileName: record.original_file_name,
         originalPdfUrl: record.original_pdf_url,
+        avatarUrl: avatarUrl || employeeProfile?.avatarUrl,
+        employeeProfile: employeeProfile,
         uploadedAt: record.created_at,
       },
     });

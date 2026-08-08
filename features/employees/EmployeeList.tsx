@@ -156,15 +156,15 @@ export function EmployeeList() {
     },
     {
       header: "Employee ID",
-      accessorKey: "id",
-      cell: (item) => <span className="font-mono text-sm font-bold text-[#0066ff] dark:text-blue-400">{item.id}</span>,
+      accessorKey: "employeeId",
+      cell: (item) => <span className="font-mono text-sm font-bold text-[#0066ff] dark:text-blue-400">{item.employeeId || item.id}</span>,
     },
     {
       header: "Employee Name",
       cell: (item) => (
-        <Link href={`/profile?id=${item.id}`}>
+        <Link href={`/employees/${item.id}`}>
           <div className="flex items-center space-x-3 cursor-pointer group">
-            <Avatar name={item.name} size="md" />
+            <Avatar src={item.avatarUrl} name={item.name} size="md" />
             <div>
               <p className="font-bold text-base text-slate-900 dark:text-slate-100 group-hover:text-[#0066ff] transition-colors">{item.name}</p>
               <p className="text-xs text-slate-500 font-medium">{item.email}</p>
@@ -209,7 +209,7 @@ export function EmployeeList() {
       header: "Actions",
       cell: (item) => (
         <div className="flex items-center space-x-1 justify-end">
-          <Link href={`/profile?id=${item.id}`}>
+          <Link href={`/employees/${item.id}`}>
             <Button
               variant="ghost"
               size="icon"

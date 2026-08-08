@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { deleteEmployeeEverywhere } from "@/lib/db-schema";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +53,11 @@ export async function DELETE(req: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ success: false, error: "Record ID is required" }, { status: 400 });
     }
 
-    const { error } = await supabase.from("cv_records").delete().eq("id", id);
+    // The id may be a raw CV record id (cv-...) or an employee id (EMP-...).
+    const ok = await deleteEmployeeEverywhere(id);
 
-    if (error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (!ok) {
+      return NextResponse.json({ success: false, error: "Failed to delete record" }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: "Record deleted successfully" });

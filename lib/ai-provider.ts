@@ -19,6 +19,9 @@ export interface ExtractedCvData {
     nid: string;
     bloodGroup: string;
     emergencyContact: string;
+    linkedinUrl?: string;
+    githubUrl?: string;
+    portfolioUrl?: string;
   };
   employment: {
     department: string;
@@ -36,6 +39,7 @@ export interface ExtractedCvData {
     board: string;
     major: string;
     result: string;
+    duration?: string;
   }>;
   experience: Array<{
     role: string;
@@ -47,6 +51,13 @@ export interface ExtractedCvData {
   documents: any[];
   other: {
     skills: string[];
+    languages?: string[];
+    certifications?: string[];
+    projects?: string[];
+    achievements?: string[];
+    references?: string[];
+    careerObjective?: string;
+    professionalSummary?: string;
     rawText: string;
   };
 }
@@ -61,7 +72,9 @@ CRITICAL ACCURACY INSTRUCTIONS FOR GRAPHIC / MULTI-COLUMN LAYOUTS:
 5. Education: Extract ALL education items (Degree e.g. "B.A. in Business", Institution e.g. "Borcelle University", Passing Year e.g. "2008").
 6. Work Experience: Extract ALL work experience items (Role e.g. "Marketing Manager", Company e.g. "Arowwai Industries", Date range e.g. "2016 - 2020", Description).
 7. Skills: Extract ALL listed skills (e.g. "UI/UX", "Wireframes", "Storyboards", "User Flows", "Process Flows", "Visual Design").
-8. Contact: Extract phone number, email address, physical address, and website accurately.
+8. Contact: Extract phone number, email address, physical address, website, LinkedIn, GitHub and portfolio links accurately.
+9. Other Details: Extract ALL languages, certifications, projects, achievements/awards, references, career objective and professional summary if present.
+10. Missing Data: If a field is not present in the CV, return an empty string "" or empty array []. NEVER invent, guess, or fabricate values.
 
 Return ONLY a valid JSON object matching this schema:
 {
@@ -82,7 +95,10 @@ Return ONLY a valid JSON object matching this schema:
     "religion": "",
     "nid": "",
     "bloodGroup": "",
-    "emergencyContact": ""
+    "emergencyContact": "",
+    "linkedinUrl": "",
+    "githubUrl": "",
+    "portfolioUrl": ""
   },
   "employment": {
     "department": "Department e.g. Sales & Marketing, IT & Engineering",
@@ -115,12 +131,19 @@ Return ONLY a valid JSON object matching this schema:
   "documents": [],
   "other": {
     "skills": ["UI/UX", "Wireframes", "Storyboards", "User Flows", "Process Flows", "Visual Design"],
+    "languages": ["English", "Bengali"],
+    "certifications": ["Certification name (year)"],
+    "projects": ["Project name - short description"],
+    "achievements": ["Achievement or award"],
+    "references": ["Reference name, title, contact"],
+    "careerObjective": "Career objective text or ''",
+    "professionalSummary": "Profile / summary / about-me text or ''",
     "rawText": "Raw text of the CV"
   }
 }`;
 
 /**
- * Universal AI CV Extractor supporting TokenRouter, OpenAI, DeepSeek, Groq, Claude, Ollama, and Google Gemini.
+ * Universal AI CV Extractor supporting AgentRouter, TokenRouter, OpenAI, DeepSeek, Groq, Claude, Ollama, and Google Gemini.
  */
 export async function extractCvWithAI(
   base64Data: string,
@@ -129,46 +152,176 @@ export async function extractCvWithAI(
 ): Promise<ExtractedCvData | null> {
   const provider = (process.env.AI_PROVIDER || "auto").toLowerCase();
 
-  // Route by specified provider
-  if (provider === "tokenrouter") return extractWithTokenRouter(rawExtractedText || "");
-  if (provider === "openai") return extractWithOpenAI(base64Data, mimeType, rawExtractedText);
-  if (provider === "deepseek") return extractWithDeepSeek(rawExtractedText || "");
-  if (provider === "groq") return extractWithGroq(rawExtractedText || "");
-  if (provider === "claude") return extractWithClaude(base64Data, mimeType, rawExtractedText);
-  if (provider === "ollama") return extractWithOllama(rawExtractedText || "");
-  if (provider === "gemini") return extractWithGemini(base64Data, mimeType);
+  const attempt = async (name: string): Promise<ExtractedCvData | null> => {
+    switch (name) {
+      case "agentrouter":
+        return process.env.AGENTROUTER_API_KEY ? extractWithAgentRouter(base64Data, mimeType, rawExtractedText) : null;
+      case "tokenrouter":
+        return process.env.TOKENROUTER_API_KEY && rawExtractedText ? extractWithTokenRouter(rawExtractedText) : null;
+      case "openai":
+        return process.env.OPENAI_API_KEY ? extractWithOpenAI(base64Data, mimeType, rawExtractedText) : null;
+      case "deepseek":
+        return process.env.DEEPSEEK_API_KEY && rawExtractedText ? extractWithDeepSeek(rawExtractedText) : null;
+      case "groq":
+        return process.env.GROQ_API_KEY && rawExtractedText ? extractWithGroq(rawExtractedText) : null;
+      case "claude":
+        return process.env.CLAUDE_API_KEY ? extractWithClaude(base64Data, mimeType, rawExtractedText) : null;
+      case "gemini":
+        return process.env.GEMINI_API_KEY ? extractWithGemini(base64Data, mimeType) : null;
+      case "ollama":
+        return process.env.OLLAMA_BASE_URL && rawExtractedText ? extractWithOllama(rawExtractedText) : null;
+      default:
+        return null;
+    }
+  };
 
-  // Default "auto" mode: tries TokenRouter first, then other configured API keys
-  if (rawExtractedText) {
-    const res = await extractWithTokenRouter(rawExtractedText);
-    if (res) return res;
-  }
-  if (process.env.OPENAI_API_KEY) {
-    const res = await extractWithOpenAI(base64Data, mimeType, rawExtractedText);
-    if (res) return res;
-  }
-  if (process.env.DEEPSEEK_API_KEY && rawExtractedText) {
-    const res = await extractWithDeepSeek(rawExtractedText);
-    if (res) return res;
-  }
-  if (process.env.GROQ_API_KEY && rawExtractedText) {
-    const res = await extractWithGroq(rawExtractedText);
-    if (res) return res;
-  }
-  if (process.env.CLAUDE_API_KEY) {
-    const res = await extractWithClaude(base64Data, mimeType, rawExtractedText);
-    if (res) return res;
-  }
-  if (process.env.GEMINI_API_KEY) {
-    const res = await extractWithGemini(base64Data, mimeType);
-    if (res) return res;
-  }
-  if (process.env.OLLAMA_BASE_URL && rawExtractedText) {
-    const res = await extractWithOllama(rawExtractedText);
-    if (res) return res;
+  // Preferred provider first, then fall back through every other configured
+  // provider so a single failing/misconfigured provider never breaks extraction.
+  const chain = ["agentrouter", "tokenrouter", "openai", "deepseek", "groq", "claude", "gemini", "ollama"];
+  const ordered = provider !== "auto" && chain.includes(provider) ? [provider, ...chain.filter((c) => c !== provider)] : chain;
+
+  for (const name of ordered) {
+    try {
+      const res = await attempt(name);
+      if (res) return res;
+    } catch (err: any) {
+      console.warn(`AI provider ${name} notice:`, err?.message || err);
+    }
   }
 
   return null;
+}
+
+/**
+ * AgentRouter API Integration (https://agentrouter.org)
+ * Supports both Anthropic Messages API (/v1/messages) and OpenAI Chat Completions API (/v1/chat/completions).
+ */
+async function extractWithAgentRouter(
+  base64Data: string,
+  mimeType: string,
+  rawExtractedText?: string
+): Promise<ExtractedCvData | null> {
+  const apiKey = process.env.AGENTROUTER_API_KEY;
+  const baseUrl = (process.env.AGENTROUTER_BASE_URL || "https://agentrouter.org").replace(/\/$/, "");
+  const modelName = process.env.AGENTROUTER_MODEL || "claude-opus-4-8";
+
+  if (!apiKey) return null;
+
+  try {
+    const isImage = mimeType.startsWith("image/");
+    const isClaudeModel = modelName.toLowerCase().includes("claude");
+
+    // 1. If Claude model, try Anthropic Messages API format first
+    if (isClaudeModel) {
+      try {
+        const anthropicContent: any[] = [];
+        if (isImage) {
+          anthropicContent.push({
+            type: "image",
+            source: { type: "base64", media_type: mimeType, data: base64Data },
+          });
+        }
+        anthropicContent.push({
+          type: "text",
+          text: `${CV_EXTRACTION_PROMPT}\n\nRAW CV TEXT:\n${rawExtractedText || ""}`,
+        });
+
+        const messagesEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/messages` : `${baseUrl}/v1/messages`;
+        const res = await fetch(messagesEndpoint, {
+          method: "POST",
+          signal: AbortSignal.timeout(90000),
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            Authorization: `Bearer ${apiKey}`,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: modelName,
+            max_tokens: 4000,
+            messages: [{ role: "user", content: anthropicContent }],
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const responseText = data.content?.[0]?.text || "";
+          const cleaned = responseText.replace(/```json|```/g, "").trim();
+          if (cleaned) return JSON.parse(cleaned);
+        }
+      } catch (anthropicErr) {
+        console.warn("AgentRouter Anthropic endpoint notice:", anthropicErr);
+      }
+    }
+
+    // 2. OpenAI Chat Completions format
+    const contentPayload: any[] = [{ type: "text", text: CV_EXTRACTION_PROMPT }];
+    if (isImage) {
+      contentPayload.push({
+        type: "image_url",
+        image_url: { url: `data:${mimeType};base64,${base64Data}` },
+      });
+    } else if (rawExtractedText) {
+      contentPayload.push({
+        type: "text",
+        text: `RAW CV TEXT:\n${rawExtractedText}`,
+      });
+    }
+
+    const completionsEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/chat/completions`;
+    let response = await fetch(completionsEndpoint, {
+      method: "POST",
+      signal: AbortSignal.timeout(90000),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: modelName,
+        messages: [{ role: "user", content: contentPayload }],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      response = await fetch(completionsEndpoint, {
+        method: "POST",
+        signal: AbortSignal.timeout(90000),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages: [
+            {
+              role: "user",
+              content: `${CV_EXTRACTION_PROMPT}\n\nRAW CV TEXT:\n${rawExtractedText || ""}`,
+            },
+          ],
+          temperature: 0.1,
+        }),
+      });
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.warn("AgentRouter API notice:", response.status, errText);
+      return null;
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) return null;
+
+    let jsonStr = typeof content === "string" ? content : JSON.stringify(content);
+    jsonStr = jsonStr.replace(/```json|```/g, "").trim();
+    return JSON.parse(jsonStr);
+  } catch (err: any) {
+    console.warn("AgentRouter extraction error:", err.message || err);
+    return null;
+  }
 }
 
 /**
@@ -184,6 +337,7 @@ async function extractWithTokenRouter(rawText: string): Promise<ExtractedCvData 
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -255,6 +409,7 @@ async function extractWithOpenAI(
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -293,6 +448,7 @@ async function extractWithDeepSeek(rawText: string): Promise<ExtractedCvData | n
   try {
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -334,6 +490,7 @@ async function extractWithGroq(rawText: string): Promise<ExtractedCvData | null>
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -398,6 +555,7 @@ async function extractWithClaude(
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
@@ -433,9 +591,9 @@ async function extractWithGemini(base64Data: string, mimeType: string): Promise<
   if (!apiKey) return null;
 
   const modelsToTry = [
-    process.env.GEMINI_MODEL || "gemini-1.5-flash",
-    "gemini-2.0-flash-exp",
-    "gemini-1.5-pro",
+    process.env.GEMINI_MODEL || "gemini-flash-latest",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
   ];
   const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -450,7 +608,7 @@ async function extractWithGemini(base64Data: string, mimeType: string): Promise<
     try {
       const model = genAI.getGenerativeModel({ model: modelName });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout model ${modelName}`)), 10000)
+        setTimeout(() => reject(new Error(`Timeout model ${modelName}`)), 45000)
       );
       const aiPromise = model.generateContent([CV_EXTRACTION_PROMPT, documentPart]);
       const result: any = await Promise.race([aiPromise, timeoutPromise]);
@@ -476,6 +634,7 @@ async function extractWithOllama(rawText: string): Promise<ExtractedCvData | nul
   try {
     const response = await fetch(`${baseUrl}/api/generate`, {
       method: "POST",
+      signal: AbortSignal.timeout(90000),
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: modelName,

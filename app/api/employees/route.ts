@@ -1,92 +1,90 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { safeParseStructuredJSON } from "@/lib/cv-json-unwrapper";
+import { localEmployeeStore, buildFullProfileFromRecord, profileFromEmployeeRow, supabase } from "@/lib/db-schema";
+import { FullEmployeeProfile } from "@/types/employee.types";
 
 export const dynamic = "force-dynamic";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-function parseCandidateDetails(candidateName: string, text: string, rawStructuredData?: any) {
-  const structured = safeParseStructuredJSON(rawStructuredData);
-
-  const content = text || "";
-  const emailMatch = content.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  const email = structured?.personal?.email || (emailMatch ? emailMatch[0] : "Not Provided in CV");
-
-  const phoneMatch = content.match(/(?:\+880|01)[0-9]{8,9}/) || content.match(/\+?\d{1,4}[-.\s]?\(?\d{1,3}\)?[-.\s]?\d{3,4}[-.\s]?\d{4}/);
-  const phone = structured?.personal?.mobile || structured?.personal?.phone || (phoneMatch ? phoneMatch[0] : "Not Provided in CV");
-
-  const designation = structured?.employment?.designation || structured?.designation || "Not Provided in CV";
-  const department = structured?.employment?.department || structured?.department || "Not Provided in CV";
-
-  return { email, phone, designation, department };
-}
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const search = searchParams.get("search")?.trim() || "";
+    const search = searchParams.get("search")?.trim().toLowerCase() || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
 
-    let dbQuery = supabase.from("cv_records").select("*", { count: "exact" });
+    const profilesList: FullEmployeeProfile[] = [];
+    const seenIds = new Set<string>();
+    const seenEmails = new Set<string>();
 
+    const addProfile = (profile: FullEmployeeProfile) => {
+      if (profile.deleted) {
+        seenIds.add(profile.employeeId);
+        seenIds.add(profile.id);
+        return;
+      }
+      if (seenIds.has(profile.employeeId) || seenIds.has(profile.id)) return;
+      const email = profile.email?.trim().toLowerCase();
+      if (email && seenEmails.has(email)) return;
+      seenIds.add(profile.employeeId);
+      seenIds.add(profile.id);
+      if (email) seenEmails.add(email);
+      profilesList.push(profile);
+    };
+
+    // 1. Primary source of truth: Supabase `employees` table
+    try {
+      const { data } = await supabase.from("employees").select("*").order("created_at", { ascending: false }).limit(2000);
+      for (const row of data || []) {
+        addProfile(profileFromEmployeeRow(row));
+      }
+    } catch (dbErr) {
+      console.warn("Supabase employees fetch warning:", dbErr);
+    }
+
+    // 2. Legacy CV records that were never promoted to an employees row
+    try {
+      const { data } = await supabase.from("cv_records").select("*").order("created_at", { ascending: false }).limit(2000);
+      for (const item of data || []) {
+        addProfile(buildFullProfileFromRecord(item));
+      }
+    } catch (dbErr) {
+      console.warn("Supabase cv_records fetch warning:", dbErr);
+    }
+
+    // 3. In-memory cache (covers a DB outage within this server process)
+    for (const profile of localEmployeeStore.values()) {
+      addProfile(profile);
+    }
+
+    // 4. Multi-Identifier Filter Engine
+    let filtered = profilesList;
     if (search) {
-      const q = search.replace(/AKT-/i, "").replace(/'/g, "''");
-      dbQuery = dbQuery.or(
-        `candidate_name.ilike.%${q}%,id.ilike.%${q}%,original_file_name.ilike.%${q}%,extracted_text.ilike.%${q}%`
-      );
+      filtered = profilesList.filter((p) => {
+        return (
+          p.name.toLowerCase().includes(search) ||
+          p.employeeId.toLowerCase().includes(search) ||
+          p.applicantId.toLowerCase().includes(search) ||
+          p.cvNumber.toLowerCase().includes(search) ||
+          p.email.toLowerCase().includes(search) ||
+          p.phone.toLowerCase().includes(search) ||
+          p.designation.toLowerCase().includes(search) ||
+          p.department.toLowerCase().includes(search) ||
+          p.otherDetails?.skills?.some((s) => s.toLowerCase().includes(search))
+        );
+      });
     }
 
-    dbQuery = dbQuery.range(from, to).order("created_at", { ascending: false });
-
-    const { data, count, error } = await dbQuery;
-
-    if (error) {
-      console.error("Supabase getEmployees error:", error);
-      return NextResponse.json({ success: false, data: [], meta: { total: 0, page, limit, totalPages: 0 } });
-    }
-
-    const formattedEmployees = (data || []).map((item: any) => {
-      const parsed = parseCandidateDetails(item.candidate_name, item.extracted_text, item.structured_data);
-      return {
-        id: item.id,
-        name: item.candidate_name,
-        email: parsed.email,
-        phone: parsed.phone,
-        department: parsed.department,
-        designation: parsed.designation,
-        status: "active",
-        joiningDate: item.created_at ? new Date(item.created_at).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
-        cvFileName: item.original_file_name,
-        cvFileSize: "PDF Document",
-        avatarUrl: undefined,
-        cvData: {
-          id: item.id,
-          candidateName: item.candidate_name,
-          extractedText: item.extracted_text,
-          structuredData: item.structured_data,
-          originalFileName: item.original_file_name,
-          originalPdfUrl: item.original_pdf_url,
-          uploadedAt: item.created_at,
-        },
-      };
-    });
-
-    const totalRecords = count !== null ? count : formattedEmployees.length;
+    const total = filtered.length;
+    const from = (page - 1) * limit;
+    const paginated = filtered.slice(from, from + limit);
 
     return NextResponse.json({
       success: true,
-      data: formattedEmployees,
+      data: paginated,
       meta: {
-        total: totalRecords,
+        total,
         page,
         limit,
-        totalPages: totalRecords > 0 ? Math.ceil(totalRecords / limit) : 0,
+        totalPages: total > 0 ? Math.ceil(total / limit) : 0,
       },
     });
   } catch (err: any) {

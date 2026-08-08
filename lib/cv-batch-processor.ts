@@ -4,6 +4,8 @@ const JSZip = (JSZipModule as any).default || JSZipModule;
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
 import { extractCvWithAI } from "./ai-provider";
+import { extractAndSaveProfilePhoto } from "./cv-photo-extractor";
+import { findOrCreateEmployeeProfile } from "./employee-deduplication";
 
 export interface BatchItemStatus {
   id: string;
@@ -507,32 +509,53 @@ export async function processCvBatch(
         const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
         const uniqueId = `cv-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        const originalPdfUrl = `data:${mimeType};base64,${base64}`;
+
+        // Photo Extraction Pipeline for Bulk Item
+        let avatarUrl: string | undefined = undefined;
+        try {
+          avatarUrl = await extractAndSaveProfilePhoto(file.buffer, mimeType, file.name, uniqueId);
+        } catch (photoErr) {
+          console.warn("Bulk photo extraction notice:", photoErr);
+        }
+
+        // Candidate Deduplication & 6-Tab Profile Upsert for Bulk Item
+        let upsertResult;
+        try {
+          upsertResult = await findOrCreateEmployeeProfile(aiData || { personal: { fullName: candidateName } }, {
+            id: uniqueId,
+            candidateName,
+            extractedText: text || aiData?.extractedText || "",
+            structuredData: aiData,
+            originalFileName: file.name,
+            originalPdfUrl,
+            avatarUrl,
+          });
+        } catch (dedupErr) {
+          console.warn("Bulk deduplication notice:", dedupErr);
+        }
+
+        const employeeProfile = upsertResult?.profile;
+
+        // Stable identifiers and avatar reference live inside structured_data —
+        // the cv_records table has no dedicated columns for them.
         const record = {
           id: uniqueId,
           candidate_name: candidateName,
           extracted_text: text || aiData?.extractedText || "Extracted from batch upload",
-          structured_data: JSON.stringify(aiData),
+          structured_data: JSON.stringify({
+            ...(aiData || {}),
+            employeeId: employeeProfile?.employeeId,
+            applicantId: employeeProfile?.applicantId,
+            cvNumber: employeeProfile?.cvNumber,
+            avatarUrl: avatarUrl || employeeProfile?.avatarUrl,
+          }),
           original_file_name: file.name,
-          original_pdf_url: `data:${mimeType};base64,${base64}`,
+          original_pdf_url: originalPdfUrl,
           created_at: new Date().toISOString(),
         };
 
-        let { error: dbError } = await supabase.from("cv_records").insert(record);
-
-        if (dbError) {
-          console.warn(`Supabase DB insert primary attempt warning for file ${file.name}:`, dbError.message);
-          const fallbackRecord = {
-            id: uniqueId,
-            candidate_name: candidateName,
-            extracted_text: text || aiData?.extractedText || "Extracted from batch upload",
-            original_file_name: file.name,
-            original_pdf_url: `data:${mimeType};base64,${base64}`,
-            created_at: new Date().toISOString(),
-          };
-          const retryResult = await supabase.from("cv_records").insert(fallbackRecord);
-          dbError = retryResult.error;
-        }
-
+        const { error: dbError } = await supabase.from("cv_records").insert(record);
         if (dbError) {
           throw new Error(`Database save error: ${dbError.message}`);
         }
