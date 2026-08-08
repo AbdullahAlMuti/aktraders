@@ -191,20 +191,30 @@ async function extractWithAgentRouter(
           },
           body: JSON.stringify({
             model: modelName,
-            max_tokens: 2500,
+            // Headroom for models that emit reasoning blocks before the JSON —
+            // a cap, not a target; typical outputs stay well under it.
+            max_tokens: 4000,
             messages: [{ role: "user", content: anthropicContent }],
           }),
         });
 
         if (res.ok) {
           const data = await res.json();
-          const responseText = data.content?.[0]?.text || "";
+          // The text block is not always first — reasoning blocks can precede it.
+          const responseText =
+            (Array.isArray(data.content) ? data.content.find((b: any) => b.type === "text")?.text : undefined) ||
+            data.content?.[0]?.text ||
+            "";
           const cleaned = responseText.replace(/```json|```/g, "").trim();
           if (cleaned) {
             console.log(`AgentRouter (anthropic format) extraction ok in ${Date.now() - startedAt}ms`);
             return JSON.parse(cleaned);
           }
-          console.warn("AgentRouter anthropic format returned empty content, falling back");
+          console.warn(
+            `AgentRouter anthropic format returned no text (stop_reason=${data.stop_reason}, blocks=${(data.content || [])
+              .map((b: any) => b.type)
+              .join(",")}), falling back`
+          );
         } else {
           console.warn(`AgentRouter anthropic format HTTP ${res.status}:`, (await res.text()).slice(0, 300));
         }

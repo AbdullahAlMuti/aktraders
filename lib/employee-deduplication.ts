@@ -45,6 +45,21 @@ function normalizeName(name?: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+/**
+ * Guard against merging two different people who happen to share contact
+ * details (common with CV templates carrying placeholder emails/phones).
+ * Names are compatible when either is missing or they share a name token.
+ */
+function namesCompatible(a?: string, b?: string): boolean {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (!na || !nb) return true;
+  const tokensA = na.split(" ").filter((t) => t.replace(/[^a-z]/g, "").length >= 2);
+  const tokensB = new Set(nb.split(" ").filter((t) => t.replace(/[^a-z]/g, "").length >= 2));
+  if (tokensA.length === 0 || tokensB.size === 0) return true;
+  return tokensA.some((t) => tokensB.has(t));
+}
+
 function firstNonEmpty<T>(...values: T[]): T | undefined {
   for (const v of values) {
     if (v === undefined || v === null) continue;
@@ -170,14 +185,18 @@ export async function findOrCreateEmployeeProfile(
 
   let existingProfile: FullEmployeeProfile | null = null;
 
-  // 1. Match by Email
+  // 1. Match by Email (only when the names could plausibly be the same person)
   if (extractedEmail) {
-    existingProfile = allProfiles.find((p) => normalizeEmail(p.email) === extractedEmail) || null;
+    existingProfile =
+      allProfiles.find((p) => normalizeEmail(p.email) === extractedEmail && namesCompatible(p.name, extractedName)) ||
+      null;
   }
 
-  // 2. Match by Phone
+  // 2. Match by Phone (same name-compatibility guard)
   if (!existingProfile && extractedPhone) {
-    existingProfile = allProfiles.find((p) => normalizePhone(p.phone) === extractedPhone) || null;
+    existingProfile =
+      allProfiles.find((p) => normalizePhone(p.phone) === extractedPhone && namesCompatible(p.name, extractedName)) ||
+      null;
   }
 
   // 3. Match by Name + DOB
