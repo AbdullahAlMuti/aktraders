@@ -204,6 +204,9 @@ async function extractWithAgentRouter(
             console.log(`AgentRouter (anthropic format) extraction ok in ${Date.now() - startedAt}ms`);
             return JSON.parse(cleaned);
           }
+          console.warn("AgentRouter anthropic format returned empty content, falling back");
+        } else {
+          console.warn(`AgentRouter anthropic format HTTP ${res.status}:`, (await res.text()).slice(0, 300));
         }
       } catch (anthropicErr) {
         console.warn("AgentRouter Anthropic endpoint notice:", anthropicErr);
