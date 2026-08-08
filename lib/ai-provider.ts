@@ -62,86 +62,20 @@ export interface ExtractedCvData {
   };
 }
 
-const CV_EXTRACTION_PROMPT = `Read this CV document carefully and extract candidate details.
+const CV_EXTRACTION_PROMPT = `Extract ALL candidate information from this CV into a single JSON object.
 
-CRITICAL ACCURACY INSTRUCTIONS FOR GRAPHIC / MULTI-COLUMN LAYOUTS:
-1. Multi-Column Layout: This CV may have a left or right sidebar (Contact, Address, Phone, Email, Education, Skills) and a main body column (Candidate Name, Title, Profile, Work Experience). Process BOTH columns completely.
-2. Kerning & Spaced Letters: If words use letter-spacing or kerning (e.g. "K o r i n a  V i l l a n u e v a" or "M a r k e t i n g  M a n a g e r"), automatically join spaced-out letters into proper clean words ("Korina Villanueva", "Marketing Manager").
-3. Candidate Name: Extract the exact person's full name (e.g. "Korina Villanueva"). Never output section headings like "Contact", "Addres", "Phone", "Web", "Profile", "Education", "Skills" as candidate name.
-4. Designation: Extract the candidate's job title or target role (e.g. "Marketing Manager").
-5. Education: Extract ALL education items (Degree e.g. "B.A. in Business", Institution e.g. "Borcelle University", Passing Year e.g. "2008").
-6. Work Experience: Extract ALL work experience items (Role e.g. "Marketing Manager", Company e.g. "Arowwai Industries", Date range e.g. "2016 - 2020", Description).
-7. Skills: Extract ALL listed skills (e.g. "UI/UX", "Wireframes", "Storyboards", "User Flows", "Process Flows", "Visual Design").
-8. Contact: Extract phone number, email address, physical address, website, LinkedIn, GitHub and portfolio links accurately.
-9. Other Details: Extract ALL languages, certifications, projects, achievements/awards, references, career objective and professional summary if present.
-10. Missing Data: If a field is not present in the CV, return an empty string "" or empty array []. NEVER invent, guess, or fabricate values.
-11. extractedText / rawText: If a "RAW CV TEXT" section is provided below, set "extractedText" and "rawText" to "" (the text is already known — do NOT echo it back). Only when NO raw text is provided (e.g. an image CV) should you transcribe the complete document text into "extractedText".
+Rules:
+- Read the ENTIRE document: sidebars, columns, headers, footers.
+- Join letter-spaced/kerned text ("K o r i n a" -> "Korina").
+- candidateName must be the person's full name — NEVER a section heading, company, university, document title, or filename.
+- Include EVERY education entry and EVERY work-experience entry.
+- Copy dates/durations exactly as written.
+- Missing fields: use "" or []. NEVER invent or guess values.
+- Set extractedText and rawText to "" unless no raw text was provided, in which case transcribe the full document into extractedText.
+- Output ONLY the JSON object. No markdown fences, no commentary.
 
-Return ONLY a valid JSON object matching this schema:
-{
-  "candidateName": "Full Name",
-  "extractedText": "Complete plain text of the CV preserving line breaks and sections",
-  "personal": {
-    "fullName": "Full Name",
-    "email": "Email address",
-    "mobile": "Phone number",
-    "presentAddress": "Address",
-    "permanentAddress": "Address or ''",
-    "fatherName": "",
-    "motherName": "",
-    "dob": "",
-    "gender": "",
-    "maritalStatus": "",
-    "nationality": "",
-    "religion": "",
-    "nid": "",
-    "bloodGroup": "",
-    "emergencyContact": "",
-    "linkedinUrl": "",
-    "githubUrl": "",
-    "portfolioUrl": ""
-  },
-  "employment": {
-    "department": "Department e.g. Sales & Marketing, IT & Engineering",
-    "designation": "Designation / Job Title e.g. Marketing Manager",
-    "workplace": "Company / Location",
-    "joiningDate": "",
-    "employmentType": "Full-Time",
-    "salaryScale": "",
-    "status": "Active"
-  },
-  "education": [
-    {
-      "degree": "Degree e.g. B.A. in Business",
-      "institution": "Institution e.g. Borcelle University",
-      "passingYear": "2008",
-      "board": "University",
-      "major": "Business",
-      "result": ""
-    }
-  ],
-  "experience": [
-    {
-      "role": "Marketing Manager",
-      "company": "Arowwai Industries",
-      "duration": "2016 - 2020",
-      "isCurrent": false,
-      "description": ""
-    }
-  ],
-  "documents": [],
-  "other": {
-    "skills": ["UI/UX", "Wireframes", "Storyboards", "User Flows", "Process Flows", "Visual Design"],
-    "languages": ["English", "Bengali"],
-    "certifications": ["Certification name (year)"],
-    "projects": ["Project name - short description"],
-    "achievements": ["Achievement or award"],
-    "references": ["Reference name, title, contact"],
-    "careerObjective": "Career objective text or ''",
-    "professionalSummary": "Profile / summary / about-me text or ''",
-    "rawText": "Raw text of the CV"
-  }
-}`;
+JSON shape:
+{"candidateName":"","extractedText":"","personal":{"fullName":"","email":"","mobile":"","presentAddress":"","permanentAddress":"","fatherName":"","motherName":"","dob":"","gender":"","maritalStatus":"","nationality":"","religion":"","nid":"","bloodGroup":"","emergencyContact":"","linkedinUrl":"","githubUrl":"","portfolioUrl":""},"employment":{"department":"","designation":"","workplace":"","joiningDate":"","employmentType":"","salaryScale":"","status":""},"education":[{"degree":"","institution":"","passingYear":"","board":"","major":"","result":"","duration":""}],"experience":[{"role":"","company":"","duration":"","isCurrent":false,"description":""}],"documents":[],"other":{"skills":[],"languages":[],"certifications":[],"projects":[],"achievements":[],"references":[],"careerObjective":"","professionalSummary":"","rawText":""}}`;
 
 /**
  * Universal AI CV Extractor supporting AgentRouter, TokenRouter, OpenAI, DeepSeek, Groq, Claude, Ollama, and Google Gemini.
@@ -204,7 +138,7 @@ async function extractWithAgentRouter(
 ): Promise<ExtractedCvData | null> {
   const apiKey = process.env.AGENTROUTER_API_KEY;
   const baseUrl = (process.env.AGENTROUTER_BASE_URL || "https://agentrouter.org").replace(/\/$/, "");
-  const modelName = process.env.AGENTROUTER_MODEL || "claude-opus-4-8";
+  const modelName = process.env.AGENTROUTER_MODEL || "claude-opus-5";
 
   if (!apiKey) return null;
 
@@ -231,10 +165,18 @@ async function extractWithAgentRouter(
             type: "image",
             source: { type: "base64", media_type: mimeType, data: base64Data },
           });
+        } else if (mimeType === "application/pdf" && base64Data && base64Data.length < 6_000_000) {
+          // Claude reads the PDF natively — layout, columns, and text drawn as
+          // graphics included. Machine-extracted text below is only a hint.
+          anthropicContent.push({
+            type: "document",
+            source: { type: "base64", media_type: "application/pdf", data: base64Data },
+          });
         }
+        const textHint = (rawExtractedText || "").slice(0, 4000);
         anthropicContent.push({
           type: "text",
-          text: `${CV_EXTRACTION_PROMPT}\n\nRAW CV TEXT:\n${rawExtractedText || ""}`,
+          text: `${CV_EXTRACTION_PROMPT}\n\nRAW CV TEXT (machine-extracted, may be corrupted or incomplete — trust the document over this):\n${textHint}`,
         });
 
         const messagesEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/messages` : `${baseUrl}/v1/messages`;
@@ -249,7 +191,7 @@ async function extractWithAgentRouter(
           },
           body: JSON.stringify({
             model: modelName,
-            max_tokens: 4000,
+            max_tokens: 2500,
             messages: [{ role: "user", content: anthropicContent }],
           }),
         });
