@@ -21,9 +21,18 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
   return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      console.warn("extractTextWithPdf2Json timed out after 10s");
+      resolve("");
+    }, 10000);
+
     const pdfParser = new PDFParser(null, true);
-    pdfParser.on("pdfParser_dataError", () => resolve(""));
+    pdfParser.on("pdfParser_dataError", () => {
+      clearTimeout(timer);
+      resolve("");
+    });
     pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+      clearTimeout(timer);
       try {
         let fullText = "";
         if (pdfData && pdfData.Pages) {
@@ -80,7 +89,12 @@ function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
         resolve("");
       }
     });
-    pdfParser.parseBuffer(buffer);
+    try {
+      pdfParser.parseBuffer(buffer);
+    } catch {
+      clearTimeout(timer);
+      resolve("");
+    }
   });
 }
 

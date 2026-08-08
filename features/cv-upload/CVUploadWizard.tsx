@@ -31,13 +31,13 @@ export function CVUploadWizard() {
             type="button"
             onClick={() => setActiveTab("single")}
             className={cn(
-              "flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all",
+              "flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap",
               activeTab === "single"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-slate-900 dark:text-blue-400"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             )}
           >
-            <FileText className="h-4 w-4" />
+            <FileText className="h-4 w-4 shrink-0" />
             <span>Single CV AI Wizard</span>
           </button>
 
@@ -45,15 +45,15 @@ export function CVUploadWizard() {
             type="button"
             onClick={() => setActiveTab("bulk")}
             className={cn(
-              "flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all",
+              "flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all whitespace-nowrap",
               activeTab === "bulk"
                 ? "bg-white text-blue-600 shadow-sm dark:bg-slate-900 dark:text-blue-400"
                 : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
             )}
           >
-            <Layers className="h-4 w-4" />
+            <Layers className="h-4 w-4 shrink-0" />
             <span>Bulk CV Upload & ZIP Ingestion</span>
-            <span className="ml-1.5 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+            <span className="ml-1.5 shrink-0 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
               New / Batch
             </span>
           </button>

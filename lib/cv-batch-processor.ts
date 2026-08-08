@@ -76,15 +76,22 @@ export function createBatchJob(
  */
 export function extractTextFromPdf(buffer: Buffer): Promise<string> {
   return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      console.warn("extractTextFromPdf timed out after 10s");
+      resolve("");
+    }, 10000);
+
     try {
       const pdfParser = new (PDFParser as any)(null, true);
       
       pdfParser.on("pdfParser_dataError", (errData: any) => {
+        clearTimeout(timer);
         console.warn("pdf2json error:", errData?.parserError || errData);
         resolve("");
       });
 
       pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+        clearTimeout(timer);
         try {
           let fullText = "";
           if (pdfData && pdfData.Pages) {
@@ -145,6 +152,7 @@ export function extractTextFromPdf(buffer: Buffer): Promise<string> {
 
       pdfParser.parseBuffer(buffer);
     } catch (err) {
+      clearTimeout(timer);
       console.warn("Failed to instantiate or call pdf2json:", err);
       resolve("");
     }
@@ -494,10 +502,19 @@ export async function processCvBatch(
         item.progress = 60;
 
         const base64 = file.buffer.toString("base64");
-        let aiData = await extractCvWithAI(base64, mimeType, text);
+        
+        let aiData: any = null;
+        try {
+          const aiPromise = extractCvWithAI(base64, mimeType, text);
+          const aiTimeout = new Promise<null>((res) => setTimeout(() => res(null), 25000));
+          aiData = await Promise.race([aiPromise, aiTimeout]);
+        } catch (aiErr) {
+          console.warn(`Batch AI extraction error for ${file.name}:`, aiErr);
+        }
 
-        // Fallback to local heuristic structure parser if AI failed or unconfigured
+        // Fallback to local heuristic structure parser if AI failed, timed out, or unconfigured
         if (!aiData) {
+          console.info(`Using fast local structure parser fallback for ${file.name}`);
           aiData = parseCvTextToStructure(text, file.name);
         }
 
@@ -509,24 +526,26 @@ export async function processCvBatch(
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
         const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
-});
+          global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
+        });
 
         const uniqueId = `cv-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         const originalPdfUrl = `data:${mimeType};base64,${base64}`;
 
-        // Photo Extraction Pipeline for Bulk Item
+        // Photo Extraction Pipeline for Bulk Item with 8s safety timeout
         let avatarUrl: string | undefined = undefined;
         try {
-          avatarUrl = await extractAndSaveProfilePhoto(file.buffer, mimeType, file.name, uniqueId);
+          const photoPromise = extractAndSaveProfilePhoto(file.buffer, mimeType, file.name, uniqueId);
+          const photoTimeout = new Promise<undefined>((res) => setTimeout(() => res(undefined), 8000));
+          avatarUrl = await Promise.race([photoPromise, photoTimeout]);
         } catch (photoErr) {
           console.warn("Bulk photo extraction notice:", photoErr);
         }
 
-        // Candidate Deduplication & 6-Tab Profile Upsert for Bulk Item
+        // Candidate Deduplication & 6-Tab Profile Upsert for Bulk Item with 15s safety timeout
         let upsertResult;
         try {
-          upsertResult = await findOrCreateEmployeeProfile(aiData || { personal: { fullName: candidateName } }, {
+          const dedupPromise = findOrCreateEmployeeProfile(aiData || { personal: { fullName: candidateName } }, {
             id: uniqueId,
             candidateName,
             extractedText: text || aiData?.extractedText || "",
@@ -535,6 +554,8 @@ export async function processCvBatch(
             originalPdfUrl,
             avatarUrl,
           });
+          const dedupTimeout = new Promise<undefined>((res) => setTimeout(() => res(undefined), 15000));
+          upsertResult = await Promise.race([dedupPromise, dedupTimeout]);
         } catch (dedupErr) {
           console.warn("Bulk deduplication notice:", dedupErr);
         }
