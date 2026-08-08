@@ -31,8 +31,14 @@ export async function GET(req: NextRequest) {
     };
 
     // 1. Primary source of truth: Supabase `employees` table
+    let dbHealthy = false;
     try {
-      const { data } = await supabase.from("employees").select("*").order("created_at", { ascending: false }).limit(2000);
+      const { data, error } = await supabase
+        .from("employees")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(2000);
+      if (!error && data) dbHealthy = true;
       for (const row of data || []) {
         addProfile(profileFromEmployeeRow(row));
       }
@@ -50,9 +56,13 @@ export async function GET(req: NextRequest) {
       console.warn("Supabase cv_records fetch warning:", dbErr);
     }
 
-    // 3. In-memory cache (covers a DB outage within this server process)
-    for (const profile of localEmployeeStore.values()) {
-      addProfile(profile);
+    // 3. In-memory cache — ONLY when the database was unreachable. The DB is
+    // the source of truth; merging cached profiles over healthy DB reads
+    // serves stale data after out-of-band changes.
+    if (!dbHealthy) {
+      for (const profile of localEmployeeStore.values()) {
+        addProfile(profile);
+      }
     }
 
     // 4. Multi-Identifier Filter Engine
