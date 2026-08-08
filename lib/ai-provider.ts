@@ -75,6 +75,7 @@ CRITICAL ACCURACY INSTRUCTIONS FOR GRAPHIC / MULTI-COLUMN LAYOUTS:
 8. Contact: Extract phone number, email address, physical address, website, LinkedIn, GitHub and portfolio links accurately.
 9. Other Details: Extract ALL languages, certifications, projects, achievements/awards, references, career objective and professional summary if present.
 10. Missing Data: If a field is not present in the CV, return an empty string "" or empty array []. NEVER invent, guess, or fabricate values.
+11. extractedText / rawText: If a "RAW CV TEXT" section is provided below, set "extractedText" and "rawText" to "" (the text is already known — do NOT echo it back). Only when NO raw text is provided (e.g. an image CV) should you transcribe the complete document text into "extractedText".
 
 Return ONLY a valid JSON object matching this schema:
 {
@@ -207,6 +208,8 @@ async function extractWithAgentRouter(
 
   if (!apiKey) return null;
 
+  const startedAt = Date.now();
+
   // AgentRouter's gateway only accepts requests that identify as a coding CLI
   // client; without these headers every call is rejected with 401
   // "unauthorized client detected" regardless of key validity.
@@ -237,7 +240,7 @@ async function extractWithAgentRouter(
         const messagesEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/messages` : `${baseUrl}/v1/messages`;
         const res = await fetch(messagesEndpoint, {
           method: "POST",
-          signal: AbortSignal.timeout(90000),
+          signal: AbortSignal.timeout(150000),
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
@@ -255,7 +258,10 @@ async function extractWithAgentRouter(
           const data = await res.json();
           const responseText = data.content?.[0]?.text || "";
           const cleaned = responseText.replace(/```json|```/g, "").trim();
-          if (cleaned) return JSON.parse(cleaned);
+          if (cleaned) {
+            console.log(`AgentRouter (anthropic format) extraction ok in ${Date.now() - startedAt}ms`);
+            return JSON.parse(cleaned);
+          }
         }
       } catch (anthropicErr) {
         console.warn("AgentRouter Anthropic endpoint notice:", anthropicErr);
@@ -279,7 +285,7 @@ async function extractWithAgentRouter(
     const completionsEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/chat/completions`;
     let response = await fetch(completionsEndpoint, {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(150000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -296,7 +302,7 @@ async function extractWithAgentRouter(
     if (!response.ok) {
       response = await fetch(completionsEndpoint, {
         method: "POST",
-        signal: AbortSignal.timeout(90000),
+        signal: AbortSignal.timeout(150000),
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
@@ -327,6 +333,7 @@ async function extractWithAgentRouter(
 
     let jsonStr = typeof content === "string" ? content : JSON.stringify(content);
     jsonStr = jsonStr.replace(/```json|```/g, "").trim();
+    console.log(`AgentRouter (openai format) extraction ok in ${Date.now() - startedAt}ms`);
     return JSON.parse(jsonStr);
   } catch (err: any) {
     console.warn("AgentRouter extraction error:", err.message || err);
