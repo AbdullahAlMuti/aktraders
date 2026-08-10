@@ -8,6 +8,10 @@ import {
   AttachedDocument,
   OtherDetails,
 } from "@/types/employee.types";
+// Experience derivation and the search-column mapping live in the normalizer so
+// there is exactly one implementation of each rule (see the candidate-search spec).
+import { deriveExperienceYears, normalizeProfile, toSearchColumns } from "@/lib/candidate-normalizer";
+import { isMissingColumnError } from "@/lib/candidate-query";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
 const supabaseAnonKey =
@@ -53,26 +57,6 @@ function asStringArray(value: any): string[] {
 
 function str(value: any): string {
   return typeof value === "string" ? value.trim() : "";
-}
-
-/**
- * Derives total experience in years from experience duration strings like "2016 - 2020" / "2021 - Present".
- * Returns undefined when nothing can be derived (never fabricates a number).
- */
-function deriveExperienceYears(expArray: any): number | undefined {
-  if (!Array.isArray(expArray) || expArray.length === 0) return undefined;
-  let total = 0;
-  const currentYear = new Date().getFullYear();
-  for (const exp of expArray) {
-    const duration = str(exp?.duration) || `${str(exp?.startDate)} - ${str(exp?.endDate)}`;
-    const m = duration.match(/(\d{4})\s*[-–—to]+\s*(\d{4}|present|current|now)/i);
-    if (m) {
-      const start = parseInt(m[1], 10);
-      const end = /\d{4}/.test(m[2]) ? parseInt(m[2], 10) : currentYear;
-      if (end >= start && end - start < 60) total += end - start;
-    }
-  }
-  return total > 0 ? total : undefined;
 }
 
 function deriveIdsFromSeed(seed: string) {
@@ -136,7 +120,7 @@ export function buildFullProfileFromRecord(record: any): FullEmployeeProfile {
     department: str(emp.department),
     employmentType: str(emp.employmentType),
     joiningDate: str(emp.joiningDate) || (record.created_at ? String(record.created_at).split("T")[0] : ""),
-    totalExperienceYears: deriveExperienceYears(expSource),
+    totalExperienceYears: deriveExperienceYears(expSource) ?? undefined,
   };
 
   const education: EducationRecord[] = asArray(structured.education || structured.educationalQualifications).map(
@@ -349,13 +333,31 @@ export function profileFromEmployeeRow(row: any): FullEmployeeProfile {
 export async function saveProfileToDb(profile: FullEmployeeProfile): Promise<boolean> {
   localEmployeeStore.set(profile.employeeId, profile);
 
+  const baseRow = employeeRowFromProfile(profile);
+  // Derived search columns are recomputed on every write, so a profile is
+  // filterable the moment it is saved rather than only after a backfill.
+  const rowWithSearchColumns = { ...baseRow, ...toSearchColumns(normalizeProfile(profile)) };
+
   try {
-    const { error } = await supabase.from("employees").upsert(employeeRowFromProfile(profile), { onConflict: "id" });
-    if (error) {
-      console.warn("saveProfileToDb warning:", error.message);
+    const { error } = await supabase.from("employees").upsert(rowWithSearchColumns, { onConflict: "id" });
+    if (!error) return true;
+
+    // Until the candidate-search migration is applied those columns do not
+    // exist. Uploading a CV must not start failing because of that, so fall
+    // back to the base row; the backfill fills the search columns in later.
+    if (isMissingColumnError(error)) {
+      console.warn(
+        "saveProfileToDb: candidate-search columns missing, saved without them. " +
+          "Run supabase/migrations/20260810_candidate_search.sql to enable filtering."
+      );
+      const { error: baseError } = await supabase.from("employees").upsert(baseRow, { onConflict: "id" });
+      if (!baseError) return true;
+      console.warn("saveProfileToDb warning:", baseError.message);
       return false;
     }
-    return true;
+
+    console.warn("saveProfileToDb warning:", error.message);
+    return false;
   } catch (e: any) {
     console.warn("saveProfileToDb error:", e?.message || e);
     return false;

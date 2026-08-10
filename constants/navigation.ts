@@ -31,7 +31,7 @@ export const MAIN_NAVIGATION: NavItem[] = [
     badge: "AI",
   },
   {
-    title: "Employee Directory",
+    title: "Candidate Directory",
     href: ROUTES.DASHBOARD.EMPLOYEES,
     icon: Users,
   },
