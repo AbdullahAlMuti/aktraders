@@ -26,6 +26,20 @@ yarn-error.log*
 /public/uploads/
 /uploads/
 
+# OCR: source PDFs, generated JSON, page images. Contains personal data (NID,
+# bank accounts) — must never reach the remote.
+/storage/
+/tests/fixtures/real/
+
+# OCR: Tesseract language models, downloaded via scripts/setup-ocr.py
+/tessdata/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
 # vercel
 .vercel
 
