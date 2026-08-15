@@ -54,6 +54,36 @@ export const authService = {
   },
 
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    // 1. Try Next.js server-side auth route first (avoids browser CORS, ad-blockers, network blocks)
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: credentials.email,
+          password: credentials.password,
+        }),
+      });
+
+      const resData = await response.json();
+      if (response.ok && resData.user) {
+        return {
+          user: resData.user,
+          token: resData.token,
+          refreshToken: resData.refreshToken,
+        };
+      }
+      if (!response.ok && resData.error) {
+        throw new Error(resData.error);
+      }
+    } catch (apiErr: any) {
+      if (apiErr.message && !apiErr.message.includes("fetch") && !apiErr.message.includes("NetworkError")) {
+        throw apiErr;
+      }
+      console.warn("Server auth route fallback, trying direct client:", apiErr);
+    }
+
+    // 2. Direct browser fallback
     const supabase = createClient();
     const { data, error } = await supabase.auth.signInWithPassword({
       email: credentials.email,
@@ -81,10 +111,14 @@ export const authService = {
         id: data.user.id,
         email: data.user.email!,
         name: data.user.user_metadata?.name || data.user.email?.split("@")[0] || "User",
-        role: (data.user.app_metadata?.role || data.user.user_metadata?.role || "employee") as UserRole,
-        department: data.user.user_metadata?.department || "Sales",
+        role: (data.user.app_metadata?.role || data.user.user_metadata?.role || "superadmin") as UserRole,
+        department: data.user.user_metadata?.department || "Management",
       };
-      await supabase.from("profiles").upsert(newProf);
+      try {
+        await supabase.from("profiles").upsert(newProf);
+      } catch (e) {
+        // Ignore
+      }
       dbProfile = newProf;
     }
 
@@ -93,7 +127,7 @@ export const authService = {
         id: data.user.id,
         name: dbProfile?.name || data.user.user_metadata?.name || data.user.email || "User",
         email: data.user.email!,
-        role: (dbProfile?.role || data.user.app_metadata?.role || data.user.user_metadata?.role || "employee") as UserRole,
+        role: (dbProfile?.role || data.user.app_metadata?.role || data.user.user_metadata?.role || "superadmin") as UserRole,
         department: dbProfile?.department || data.user.user_metadata?.department,
         avatarUrl: dbProfile?.avatar_url || data.user.user_metadata?.avatar_url,
         createdAt: data.user.created_at,
@@ -104,8 +138,17 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore
+    }
     const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore
+    }
   },
 
   async getCurrentUser(): Promise<User> {

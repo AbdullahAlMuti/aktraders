@@ -2,11 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const createClient = (request: NextRequest) => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://kvddegdgvdzldlwslvre.supabase.co";
   const supabaseKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "placeholder-key";
+    "sb_publishable_gs-IB3kyklUD6MmEgC4ANQ_0KyJD8Vo";
 
   // Create an unmodified response
   let supabaseResponse = NextResponse.next({
