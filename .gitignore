@@ -23,7 +23,8 @@ yarn-error.log*
 .env
 
 # Sensitive uploaded documents must never be committed or served from public/
-/public/uploads/
+/public/uploads/*
+!/public/uploads/photos/
 /uploads/
 
 # OCR: source PDFs, generated JSON, page images. Contains personal data (NID,
