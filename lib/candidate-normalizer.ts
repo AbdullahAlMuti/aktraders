@@ -201,14 +201,15 @@ const EDUCATION_RULES: ReadonlyArray<{ level: EducationLevel; phrases: readonly 
   { level: "hsc", phrases: ["hsc", "higher secondary", "intermediate", "alim", "a level", "alevel"] },
   {
     level: "ssc",
-    phrases: ["ssc", "secondary school certificate", "matric", "matriculation", "dakhil", "o level", "olevel"],
+    phrases: ["ssc", "secondary school certificate", "matric", "matriculation", "dakhil", "o level", "olevel", "এসএসসি", "এস এস সি"],
   },
   {
     level: "below_ssc",
     phrases: [
       "jsc", "jdc", "psc", "primary",
       "class 5", "class 6", "class 7", "class 8", "class 9",
-      "eight pass", "five pass",
+      "eight pass", "five pass", "৮ম শ্রেণী", "৫ম শ্রেণী", "৭ম শ্রেণী", "৮ম", "৫ম", "৭ম",
+      "৮ম শ্রেনী", "৫ম শ্রেনী", "৭ম শ্রেনী", "অষ্টম শ্রেণী", "পঞ্চম শ্রেণী", "সপ্তম শ্রেণী",
     ],
   },
 ];
@@ -282,7 +283,7 @@ const PROFESSION_RULES: ReadonlyArray<{ profession: Profession; phrases: readonl
   { profession: "driver", phrases: ["driver", "drivers", "driving", "chauffeur", "ড্রাইভার"] },
   { profession: "security_guard", phrases: ["security guard", "security", "guard", "watchman", "ansar"] },
   { profession: "housekeeper", phrases: ["housekeeper", "house keeper", "housekeeping", "house keeping", "maid", "housemaid", "house maid", "domestic help", "domestic worker"] },
-  { profession: "cleaner", phrases: ["cleaner", "cleaning", "sweeper", "janitor"] },
+  { profession: "cleaner", phrases: ["cleaner", "cleaning", "sweeper", "janitor", "পরিচ্ছন্নতাকর্মী", "পরিচ্ছন্নতা কর্মী", "ঝাড়ুদার", "সুইপার", "ক্লিনার"] },
   { profession: "electrician", phrases: ["electrician"] },
   { profession: "welder", phrases: ["welder", "welding"] },
   { profession: "technician", phrases: ["technician", "mechanic", "fitter"] },
@@ -307,6 +308,15 @@ export function normalizeProfession(value: unknown): Profession | null {
 
 /* ------------------------------------------------------------- experience */
 
+const BENGALI_DIGIT_MAP: Record<string, string> = {
+  "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+  "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9",
+};
+
+export function convertBengaliDigits(str: string): string {
+  return str.replace(/[০-৯]/g, (d) => BENGALI_DIGIT_MAP[d] || d);
+}
+
 /**
  * Derives total experience in years from duration strings like "2016 - 2020",
  * "2021 - Present" and "Jan 2016 to Dec 2019". Returns null (never 0) when
@@ -322,16 +332,19 @@ export function deriveExperienceYears(expArray: unknown): number | null {
     const record = (exp ?? {}) as Record<string, unknown>;
     const explicit = asText(record.duration);
     const end = asText(record.endDate) || (record.isCurrent === true ? "Present" : "");
-    const duration = explicit || `${asText(record.startDate)} - ${end}`;
+    let duration = convertBengaliDigits(explicit || `${asText(record.startDate)} - ${end}`);
+    duration = duration.replace(/অদ্যাবধি|বর্তমান/g, "Present");
 
     const m = duration.match(
-      /(\d{4})\s*(?:[-–—]|to|till|until)+\s*(?:[a-z]{3,9}\.?,?\s*)?(\d{4}|present|current|now|ongoing)/i
+      /(\d{4})\s*(?:[-–—]|to|till|until)+\s*(?:[a-z0-9ঀ-৿.,\s]*?)(\d{4}|present|current|now|ongoing)/i
     );
     if (!m) continue;
 
     const start = parseInt(m[1], 10);
     const finish = /\d{4}/.test(m[2]) ? parseInt(m[2], 10) : currentYear;
-    if (finish >= start && finish - start < 60) total += finish - start;
+    if (finish >= start && finish - start < 60) {
+      total += Math.max(1, finish - start);
+    }
   }
 
   return total > 0 ? total : null;

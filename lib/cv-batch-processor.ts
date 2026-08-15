@@ -3,11 +3,12 @@ import * as JSZipModule from "jszip";
 const JSZip = (JSZipModule as any).default || JSZipModule;
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@supabase/supabase-js";
-import { extractCvWithAI } from "./ai-provider";
+import { extractCvWithAI, synthesizeTextFromStructuredData } from "./ai-provider";
 import { extractAndSaveProfilePhoto } from "./cv-photo-extractor";
+import { extractTextWithLocalOcr } from "./local-ocr";
 import { findOrCreateEmployeeProfile } from "./employee-deduplication";
 import { validateExtraction } from "./extraction-validator";
-import { saveProfileToDb } from "./db-schema";
+import { saveProfileToDb, supabase } from "./db-schema";
 
 export interface BatchItemStatus {
   id: string;
@@ -225,34 +226,95 @@ export function parseCvTextToStructure(text: string, fileName: string) {
     .map((l) => l.trim())
     .filter((l) => l.length > 0 && !l.startsWith("%PDF"));
 
-  // 1. Candidate Name
-  const nameMatch = cleanCandidateName(undefined, text, fileName);
-  const candidateName = nameMatch || null;
+  // 1. Candidate Name (Bilingual Bengali/English + Filename fallback)
+  let candidateName = "";
+  const benNameMatch = normalized.match(/(?:^|\n)\s*(?:(?:০১|১|01|1)[।\.]\s*)?নাম\s*[:ঃ£\$|]\s*([^\r\n]+)/);
+  if (benNameMatch && benNameMatch[1].trim()) {
+    const rawBen = benNameMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim();
+    if (!rawBen.includes("পরিচ্ছন্নতাকর্মী") && !rawBen.includes("পদের") && rawBen.length >= 2) {
+      candidateName = rawBen;
+    }
+  }
+
+  if (!candidateName) {
+    const engNameMatch = normalized.match(/(?:^|\n)\s*Name\s*[:ঃ£\$|]?\s*([A-Z][A-Za-z\s.-]{2,30})/);
+    if (engNameMatch && engNameMatch[1].trim() && !/^(?:of|is|cleaner|bangladesh)/i.test(engNameMatch[1].trim())) {
+      candidateName = engNameMatch[1].trim();
+    }
+  }
+
+  if (!candidateName || candidateName.length < 2) {
+    const nameMatch = cleanCandidateName(undefined, text, fileName);
+    candidateName = nameMatch || "";
+  }
 
   // 2. Email
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i;
   const emailMatch = normalized.match(emailRegex);
   const email = emailMatch ? emailMatch[0] : "";
 
-  // 3. Phone Number
-  const phoneRegex = /(?:\+880|01|\+?\d{1,4})[0-9\s-]{8,14}/;
-  const phoneMatch = normalized.match(phoneRegex);
-  const mobile = phoneMatch ? phoneMatch[0].trim() : "";
+  // 3. Father's Name & Mother's Name
+  const fatherMatch = normalized.match(/(?:(?:০২|২|02|2)[।\.]\s*পিতার?\s*নাম|পিতার?\s*নাম|Father(?:'s)?\s*Name)\s*[:ঃ£\$|]\s*([^\r\n]+)/i);
+  const fatherName = fatherMatch ? fatherMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
 
-  // 4. Present Address
-  let presentAddress = "";
-  const addressLine = lines.find((l) =>
-    /\b(st\.|street|road|way|drive|avenue|city|state|zip|box|post|lane|court|dhaka|colostate|fort collins)\b/i.test(l) &&
-    !/@|\b(email|phone|addres|web|website|contact|education|experience|skills)\b/i.test(l)
-  );
-  if (addressLine && addressLine.length > 8 && addressLine.length < 120) {
-    presentAddress = addressLine;
+  const motherMatch = normalized.match(/(?:(?:০৩|৩|03|3)[।\.]\s*মাতার?\s*নাম|মাতার?\s*নাম|Mother(?:'s)?\s*Name)\s*[:ঃ£\$|]\s*([^\r\n]+)/i);
+  const motherName = motherMatch ? motherMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
+
+  // 4. NID Number
+  const nidMatch = normalized.match(/(?:জাতীয়\s*পরিচয়(?:ত)?পত্র\s*(?:নাম্বার|নং)?|NID\s*(?:No|Number)?)\s*[:ঃ£\$|]?\s*([0-9\s]{10,17})/i);
+  const nid = nidMatch ? nidMatch[1].replace(/\s+/g, "").trim() : "";
+
+  // 5. DOB & Age
+  const dobMatch = normalized.match(/(?:জন্ম\s*তারিখ|Date\s*of\s*Birth|DOB)\s*[:ঃ£\$|]?\s*([0-9\/\.\-]+|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})/i);
+  const dob = dobMatch ? dobMatch[1].trim() : "";
+
+  // 6. Gender, Marital Status, Religion, Nationality
+  const genderMatch = normalized.match(/(?:লিঙ্গ|Gender)\s*[:ঃ£\$|]?\s*([^\r\n]+)/i);
+  const gender = genderMatch ? genderMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
+
+  const maritalMatch = normalized.match(/(?:বৈবাহিক\s*অবস্থা|Marital\s*Status)\s*[:ঃ£\$|]?\s*([^\r\n]+)/i);
+  const maritalStatus = maritalMatch ? maritalMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
+
+  const religionMatch = normalized.match(/(?:ধর্ম|Religion)\s*[:ঃ£\$|]?\s*([^\r\n]+)/i);
+  const religion = religionMatch ? religionMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
+
+  const nationalityMatch = normalized.match(/(?:জাতীয়তা|Nationality)\s*[:ঃ£\$|]?\s*([^\r\n]+)/i);
+  const nationality = nationalityMatch ? nationalityMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "Bangladeshi";
+
+  // 7. Phone Number
+  const phoneExplicit = normalized.match(/(?:মোবাইল\s*(?:নাম্বার|নং)?|Mobile|Phone|Tel)\s*[:ঃ£\$|]?\s*(\+?880?1[0-9]{9}|01[0-9]{9})/i);
+  const phoneRegex = /(?:\+880|01|\+?\d{1,4})[0-9\s-]{8,14}/;
+  const phoneMatch = phoneExplicit ? phoneExplicit[1] : normalized.match(phoneRegex);
+  const mobile = phoneMatch ? (typeof phoneMatch === "string" ? phoneMatch : phoneMatch[0]).trim() : "";
+
+  // 8. Addresses
+  const permMatch = normalized.match(/(?:স্থায়ী\s*ঠিকানা|Permanent\s*Address)\s*[:ঃ£\$|]?\s*([^\r\n]+(?:\r?\n[^\r\n]+)?)/i);
+  const permanentAddress = permMatch ? permMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : "";
+
+  const presMatch = normalized.match(/(?:বর্তমান\s*ঠিকানা|Present\s*Address)\s*[:ঃ£\$|]?\s*([^\r\n]+(?:\r?\n[^\r\n]+)?)/i);
+  let presentAddress = presMatch ? presMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim() : permanentAddress;
+
+  if (!presentAddress) {
+    const addressLine = lines.find((l) =>
+      /\b(st\.|street|road|way|drive|avenue|city|state|zip|box|post|lane|court|dhaka|colostate|fort collins|গ্রাম|থানা|জেলা|বাসা)\b/i.test(l) &&
+      !/@|\b(email|phone|addres|web|website|contact|education|experience|skills)\b/i.test(l)
+    );
+    if (addressLine && addressLine.length > 8 && addressLine.length < 150) {
+      presentAddress = addressLine;
+    }
   }
 
-  // 5. Designation & Department inference
+  // 9. Designation & Department inference
   const lower = normalized.toLowerCase();
   let designation = "";
-  if (lower.includes("marketing manager")) {
+  const desigMatch = normalized.match(/(?:পদের\s*নাম|Position\s*Applied\s*For|Designation|Role)\s*[:ঃ£\$|]?\s*([^\r\n]+)/i);
+  if (desigMatch && desigMatch[1].trim()) {
+    designation = desigMatch[1].replace(/^(?:£|\$|\||ঃ|:)\s*/, "").trim();
+  }
+
+  if (lower.includes("পরিচ্ছন্নতাকর্মী") || lower.includes("cleaner")) {
+    designation = "Cleaner / পরিচ্ছন্নতাকর্মী";
+  } else if (lower.includes("marketing manager")) {
     designation = "Marketing Manager";
   } else if (lower.includes("product design manager") || lower.includes("product designer")) {
     designation = "Product Design Manager";
@@ -271,7 +333,9 @@ export function parseCvTextToStructure(text: string, fileName: string) {
   }
 
   let department = "";
-  if (lower.includes("marketing") || lower.includes("sales") || lower.includes("business development")) {
+  if (lower.includes("পরিচ্ছন্নতাকর্মী") || lower.includes("cleaner") || lower.includes("housekeeping") || lower.includes("sanitation")) {
+    department = "Housekeeping & Facilities";
+  } else if (lower.includes("marketing") || lower.includes("sales") || lower.includes("business development")) {
     department = "Sales & Marketing";
   } else if (lower.includes("software") || lower.includes("developer") || lower.includes("engineer") || lower.includes("it") || lower.includes("ui/ux")) {
     department = "IT & Engineering";
@@ -338,19 +402,19 @@ export function parseCvTextToStructure(text: string, fileName: string) {
     extractedText: normalized,
     personal: {
       fullName: candidateName || "",
-      fatherName: "",
-      motherName: "",
-      dob: "",
-      gender: "",
-      maritalStatus: "",
-      nationality: "",
-      religion: "",
-      nid: "",
+      fatherName,
+      motherName,
+      dob,
+      gender,
+      maritalStatus,
+      nationality,
+      religion,
+      nid,
       bloodGroup: "",
       mobile,
       email,
       presentAddress,
-      permanentAddress: presentAddress,
+      permanentAddress: permanentAddress || presentAddress,
       emergencyContact: "",
     },
     employment: {
@@ -467,7 +531,10 @@ function cleanCandidateName(rawName: string | undefined | null, text: string, fi
     }
   }
 
-  const cleanName = fileName.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ").trim();
+  let cleanName = fileName.replace(/\.[^/.]+$/, "").trim();
+  cleanName = cleanName.replace(/\s*[-_]\s*(?:\d+|dudok|duduk|\(.*?\)).*$/i, "");
+  cleanName = cleanName.replace(/(?:\s+(?:cleaner|helper|officer|assistant|manager|driver|cook|guard|worker|staff))\b.*$/i, "");
+  cleanName = cleanName.replace(/[-_]/g, " ").trim();
   return normalizeKerningText(cleanName);
 }
 
@@ -498,16 +565,22 @@ export async function processCvBatch(
 
         if (mimeType === "application/pdf") {
           text = await extractTextFromPdf(file.buffer);
+          // If native PDF text is empty (scanned image document), run local Tesseract OCR
+          if (!text || text.trim().length === 0) {
+            text = await extractTextWithLocalOcr(file.buffer);
+          }
         }
         item.progress = 60;
 
         const base64 = file.buffer.toString("base64");
-        
+
         let aiData: any = null;
+        let aiSucceeded = false;
         try {
           const aiPromise = extractCvWithAI(base64, mimeType, text);
           const aiTimeout = new Promise<null>((res) => setTimeout(() => res(null), 25000));
           aiData = await Promise.race([aiPromise, aiTimeout]);
+          aiSucceeded = aiData !== null;
         } catch (aiErr) {
           console.warn(`Batch AI extraction error for ${file.name}:`, aiErr);
         }
@@ -516,18 +589,34 @@ export async function processCvBatch(
         if (!aiData) {
           console.info(`Using fast local structure parser fallback for ${file.name}`);
           aiData = parseCvTextToStructure(text, file.name);
+        } else {
+          // If native text extraction was empty (e.g. scanned PDF), synthesize clean text from AI data
+          if (!text || text.trim().length === 0) {
+            text = aiData.extractedText || synthesizeTextFromStructuredData(aiData);
+          }
+          if (!aiData.extractedText || aiData.extractedText.trim().length === 0) {
+            aiData.extractedText = text;
+          }
         }
 
         const rawAiName = aiData?.candidateName || aiData?.personal?.fullName;
         const candidateName = cleanCandidateName(rawAiName, text, file.name);
         item.candidateName = candidateName;
 
-        // Supabase client initialization
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
-        const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-          global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
-        });
+        const hasText = text.trim().length > 0;
+        const hasAiData =
+          aiSucceeded &&
+          (!!aiData?.candidateName ||
+            !!aiData?.personal?.fullName ||
+            (aiData?.education && aiData.education.length > 0) ||
+            (aiData?.experience && aiData.experience.length > 0) ||
+            (aiData?.extractedText && aiData.extractedText.trim().length > 0));
+
+        if (!hasText && !hasAiData && (!candidateName || candidateName.length < 2)) {
+          throw new Error(
+            "Unreadable PDF file. Could not extract text (native parsing, OCR, and AI extraction failed) — likely a corrupted or unreadable document."
+          );
+        }
 
         const uniqueId = `cv-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         const originalPdfUrl = `data:${mimeType};base64,${base64}`;

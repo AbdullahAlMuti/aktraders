@@ -4,8 +4,8 @@ import { deleteEmployeeEverywhere } from "@/lib/db-schema";
 
 export const dynamic = "force-dynamic";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://kvddegdgvdzldlwslvre.supabase.co";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_gs-IB3kyklUD6MmEgC4ANQ_0KyJD8Vo";
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
 });

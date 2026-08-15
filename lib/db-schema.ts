@@ -13,9 +13,11 @@ import {
 import { deriveExperienceYears, normalizeProfile, toSearchColumns } from "@/lib/candidate-normalizer";
 import { isMissingColumnError } from "@/lib/candidate-query";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://kvddegdgvdzldlwslvre.supabase.co";
 const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "missing-key";
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_gs-IB3kyklUD6MmEgC4ANQ_0KyJD8Vo";
 // Next.js patches global fetch with a cache that can replay stale Supabase
 // responses across requests (and even server restarts). The DB must always be
 // read live — opt every Supabase call out of that cache.

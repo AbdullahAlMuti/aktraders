@@ -62,6 +62,56 @@ export interface ExtractedCvData {
   };
 }
 
+export function synthesizeTextFromStructuredData(data: any): string {
+  if (!data) return "";
+  const lines: string[] = [];
+  const p = data.personal || data.personalInformation || {};
+  const name = data.candidateName || p.fullName || "";
+  if (name) lines.push(`Name: ${name}`);
+  if (p.mobile || p.phone) lines.push(`Phone: ${p.mobile || p.phone}`);
+  if (p.email) lines.push(`Email: ${p.email}`);
+  if (p.presentAddress || p.address) lines.push(`Address: ${p.presentAddress || p.address}`);
+  if (p.permanentAddress) lines.push(`Permanent Address: ${p.permanentAddress}`);
+  if (p.fatherName) lines.push(`Father's Name: ${p.fatherName}`);
+  if (p.motherName) lines.push(`Mother's Name: ${p.motherName}`);
+  if (p.dob) lines.push(`Date of Birth: ${p.dob}`);
+  if (p.gender) lines.push(`Gender: ${p.gender}`);
+  if (p.nid) lines.push(`NID: ${p.nid}`);
+  if (p.religion) lines.push(`Religion: ${p.religion}`);
+  if (p.nationality) lines.push(`Nationality: ${p.nationality}`);
+
+  const emp = data.employment || data.employmentDetails || {};
+  if (emp.designation || emp.role) lines.push(`Designation: ${emp.designation || emp.role}`);
+  if (emp.workplace || emp.organization) lines.push(`Organization: ${emp.workplace || emp.organization}`);
+  if (emp.department) lines.push(`Department: ${emp.department}`);
+
+  const edu = Array.isArray(data.education) ? data.education : Array.isArray(data.educationalQualifications) ? data.educationalQualifications : [];
+  if (edu.length > 0) {
+    lines.push("\nEducation:");
+    for (const e of edu) {
+      lines.push(`- ${e.degree || e.qualificationName || ''} at ${e.institution || ''} (${e.passingYear || ''}) Result: ${e.result || e.gpaCgpa || ''}`);
+    }
+  }
+
+  const exp = Array.isArray(data.experience) ? data.experience : Array.isArray(data.workExperience) ? data.workExperience : [];
+  if (exp.length > 0) {
+    lines.push("\nExperience:");
+    for (const x of exp) {
+      lines.push(`- ${x.role || x.jobTitle || x.designation || ''} at ${x.company || x.organizationName || ''} (${x.duration || ''}) ${x.description || ''}`);
+    }
+  }
+
+  const other = data.other || data.otherDetails || {};
+  if (other.skills && other.skills.length > 0) {
+    lines.push(`\nSkills: ${Array.isArray(other.skills) ? other.skills.join(", ") : other.skills}`);
+  }
+  if (other.professionalSummary || other.careerObjective) {
+    lines.push(`\nSummary: ${other.professionalSummary || other.careerObjective}`);
+  }
+
+  return lines.join("\n").trim();
+}
+
 const CV_EXTRACTION_PROMPT = `Extract ALL candidate information from this CV into a single JSON object.
 
 Rules:
@@ -87,6 +137,10 @@ export async function extractCvWithAI(
 ): Promise<ExtractedCvData | null> {
   const provider = (process.env.AI_PROVIDER || "auto").toLowerCase();
 
+  if (provider === "local" || provider === "none" || provider === "offline") {
+    return null;
+  }
+
   const attempt = async (name: string): Promise<ExtractedCvData | null> => {
     switch (name) {
       case "agentrouter":
@@ -102,7 +156,7 @@ export async function extractCvWithAI(
       case "claude":
         return process.env.CLAUDE_API_KEY ? extractWithClaude(base64Data, mimeType, rawExtractedText) : null;
       case "gemini":
-        return process.env.GEMINI_API_KEY ? extractWithGemini(base64Data, mimeType) : null;
+        return process.env.GEMINI_API_KEY ? extractWithGemini(base64Data, mimeType, rawExtractedText) : null;
       case "ollama":
         return process.env.OLLAMA_BASE_URL && rawExtractedText ? extractWithOllama(rawExtractedText) : null;
       default:
@@ -110,9 +164,8 @@ export async function extractCvWithAI(
     }
   };
 
-  // Preferred provider first, then fall back through every other configured
-  // provider so a single failing/misconfigured provider never breaks extraction.
-  const chain = ["agentrouter", "tokenrouter", "openai", "deepseek", "groq", "claude", "gemini", "ollama"];
+  // Preferred provider first, then fall back through working providers
+  const chain = ["gemini", "openai", "claude", "groq", "deepseek", "agentrouter", "tokenrouter", "ollama"];
   const ordered = provider !== "auto" && chain.includes(provider) ? [provider, ...chain.filter((c) => c !== provider)] : chain;
 
   for (const name of ordered) {
@@ -182,7 +235,7 @@ async function extractWithAgentRouter(
         const messagesEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/messages` : `${baseUrl}/v1/messages`;
         const res = await fetch(messagesEndpoint, {
           method: "POST",
-          signal: AbortSignal.timeout(150000),
+          signal: AbortSignal.timeout(20000),
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
@@ -240,7 +293,7 @@ async function extractWithAgentRouter(
     const completionsEndpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/chat/completions`;
     let response = await fetch(completionsEndpoint, {
       method: "POST",
-      signal: AbortSignal.timeout(150000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -257,7 +310,7 @@ async function extractWithAgentRouter(
     if (!response.ok) {
       response = await fetch(completionsEndpoint, {
         method: "POST",
-        signal: AbortSignal.timeout(150000),
+        signal: AbortSignal.timeout(20000),
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiKey}`,
@@ -309,7 +362,7 @@ async function extractWithTokenRouter(rawText: string): Promise<ExtractedCvData 
   try {
     const response = await fetch(`${baseUrl}/chat/completions`, {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -381,7 +434,7 @@ async function extractWithOpenAI(
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -420,7 +473,7 @@ async function extractWithDeepSeek(rawText: string): Promise<ExtractedCvData | n
   try {
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -462,7 +515,7 @@ async function extractWithGroq(rawText: string): Promise<ExtractedCvData | null>
   try {
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
@@ -527,7 +580,7 @@ async function extractWithClaude(
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
@@ -558,31 +611,43 @@ async function extractWithClaude(
 /**
  * Google Gemini Extraction Engine
  */
-async function extractWithGemini(base64Data: string, mimeType: string): Promise<ExtractedCvData | null> {
+async function extractWithGemini(
+  base64Data: string,
+  mimeType: string,
+  rawExtractedText?: string
+): Promise<ExtractedCvData | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
-  const modelsToTry = [
-    process.env.GEMINI_MODEL || "gemini-flash-latest",
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-  ];
+  const modelsToTry = [process.env.GEMINI_MODEL || "gemini-2.5-flash", "gemini-3.7-flash", "gemini-flash-latest"];
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  const documentPart = {
-    inlineData: {
-      data: base64Data,
-      mimeType: mimeType,
-    },
-  };
+  const parts: any[] = [CV_EXTRACTION_PROMPT];
+  if (rawExtractedText && rawExtractedText.trim().length > 0) {
+    parts.push({ text: `RAW CV TEXT:\n${rawExtractedText}` });
+  }
+  if (base64Data && base64Data.length < 4_000_000) {
+    parts.push({
+      inlineData: {
+        data: base64Data,
+        mimeType: mimeType,
+      },
+    });
+  }
 
   for (const modelName of modelsToTry) {
     try {
-      const model = genAI.getGenerativeModel({ model: modelName });
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      });
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error(`Timeout model ${modelName}`)), 45000)
+        setTimeout(() => reject(new Error(`Timeout model ${modelName}`)), 20000)
       );
-      const aiPromise = model.generateContent([CV_EXTRACTION_PROMPT, documentPart]);
+      const aiPromise = model.generateContent(parts);
       const result: any = await Promise.race([aiPromise, timeoutPromise]);
 
       const responseText = result.response.text();
@@ -606,7 +671,7 @@ async function extractWithOllama(rawText: string): Promise<ExtractedCvData | nul
   try {
     const response = await fetch(`${baseUrl}/api/generate`, {
       method: "POST",
-      signal: AbortSignal.timeout(90000),
+      signal: AbortSignal.timeout(20000),
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: modelName,

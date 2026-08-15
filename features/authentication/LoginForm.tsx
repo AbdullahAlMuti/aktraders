@@ -59,6 +59,29 @@ export function LoginForm() {
         </div>
       </div>
 
+      {/* Demo Credentials Info Box */}
+      <div className="rounded-xl bg-blue-50/80 p-3.5 text-xs text-blue-900 dark:bg-blue-950/40 dark:text-blue-200 border border-blue-100 dark:border-blue-900/60 space-y-1">
+        <div className="font-semibold flex items-center justify-between text-blue-700 dark:text-blue-300">
+          <span>Demo Admin Credentials:</span>
+          <button
+            type="button"
+            onClick={() => {
+              loginForm.setValue("email", "admin@aktraders.com");
+              loginForm.setValue("password", "AdminPassword123!");
+            }}
+            className="text-[11px] underline hover:text-blue-800 dark:hover:text-blue-100 font-medium"
+          >
+            Auto-fill
+          </button>
+        </div>
+        <div className="font-mono text-[11px] opacity-90">
+          Email: <span className="font-bold select-all">admin@aktraders.com</span>
+        </div>
+        <div className="font-mono text-[11px] opacity-90">
+          Password: <span className="font-bold select-all">AdminPassword123!</span>
+        </div>
+      </div>
+
       {error && (
         <div className="flex items-center space-x-2 rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-950/50 dark:text-red-400 border border-red-200 dark:border-red-900">
           <ShieldAlert className="h-4 w-4 shrink-0" />

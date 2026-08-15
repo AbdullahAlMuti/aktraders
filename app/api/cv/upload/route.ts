@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { createClient } from "@supabase/supabase-js";
-import { extractCvWithAI } from "@/lib/ai-provider";
+import { extractCvWithAI, synthesizeTextFromStructuredData } from "@/lib/ai-provider";
 import { extractAndSaveProfilePhoto } from "@/lib/cv-photo-extractor";
 import { findOrCreateEmployeeProfile } from "@/lib/employee-deduplication";
 import { parseCvTextToStructure, normalizeKerningText } from "@/lib/cv-batch-processor";
+import { extractTextWithLocalOcr } from "@/lib/local-ocr";
 import { validateExtraction } from "@/lib/extraction-validator";
-import { saveProfileToDb } from "@/lib/db-schema";
+import { saveProfileToDb, supabase } from "@/lib/db-schema";
 import fs from "fs";
 import path from "path";
 import PDFParser from "pdf2json";
 
 export const dynamic = "force-dynamic";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qbawcgxjvjkvtgtczseo.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  global: { fetch: (url: any, init: any = {}) => fetch(url, { ...init, cache: "no-store" }) },
-});
 
 function extractTextWithPdf2Json(buffer: Buffer): Promise<string> {
   return new Promise((resolve) => {
@@ -179,9 +173,12 @@ export async function POST(req: NextRequest) {
     let extractedText = "";
     let structuredData: any = null;
 
-    // 1. Ultra-Fast High-Speed Local PDF Text Extraction (~300ms)
+    // 1. Ultra-Fast High-Speed Local PDF Text Extraction (~300ms) with Local OCR fallback
     try {
       extractedText = await extractTextWithPdf2Json(buffer);
+      if (!extractedText || extractedText.trim().length === 0) {
+        extractedText = await extractTextWithLocalOcr(buffer);
+      }
     } catch (pdfErr) {
       console.warn("pdf2json extraction warning:", pdfErr);
     }
@@ -201,15 +198,26 @@ export async function POST(req: NextRequest) {
       console.warn("AI extraction notice:", aiError.message || aiError);
     }
 
-    // Quality Validation
-    if (!extractedText || extractedText.trim().length === 0) {
-      return NextResponse.json({ success: false, error: "Unreadable PDF file. Could not extract text." }, { status: 422 });
-    }
-
     // Local heuristic fallback when no AI provider produced structured data
     if (!structuredData) {
       structuredData = parseCvTextToStructure(extractedText, file.name);
       candidateName = candidateName || structuredData.candidateName || "";
+    } else {
+      if (!extractedText || extractedText.trim().length === 0) {
+        extractedText = structuredData.extractedText || synthesizeTextFromStructuredData(structuredData);
+      }
+      if (!structuredData.extractedText || structuredData.extractedText.trim().length === 0) {
+        structuredData.extractedText = extractedText;
+      }
+    }
+
+    // Quality Validation: Reject only if neither native text nor AI structured data is available
+    const hasData =
+      (extractedText && extractedText.trim().length > 0) ||
+      (structuredData && (!!structuredData.candidateName || !!structuredData.personal?.fullName || (structuredData.education && structuredData.education.length > 0)));
+
+    if (!hasData) {
+      return NextResponse.json({ success: false, error: "Unreadable PDF file. Could not extract text from this document." }, { status: 422 });
     }
 
     // Clean and validate Candidate Name
