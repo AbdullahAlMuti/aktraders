@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("query")?.trim() || "";
 
-    let dbQuery = supabase.from("cv_records").select("id, candidate_name, original_file_name, original_pdf_url, created_at");
+    let dbQuery = supabase.from("cv_records").select("id, candidate_name, original_file_name, original_pdf_url, avatar_url, created_at");
 
     if (query.length > 0) {
       const q = query.replace(/AKT-/i, "").replace(/'/g, "''");
@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
       candidateName: item.candidate_name,
       originalFileName: item.original_file_name,
       originalPdfUrl: item.original_pdf_url,
+      avatarUrl: item.avatar_url || null,
       uploadedAt: item.created_at,
     }));
 

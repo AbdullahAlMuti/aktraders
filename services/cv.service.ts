@@ -4,6 +4,7 @@ export interface MinimalCVRecord {
   extractedText: string;
   originalFileName: string;
   originalPdfUrl: string;
+  avatarUrl?: string | null;
   uploadedAt: string;
 }
 

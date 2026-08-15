@@ -2,15 +2,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Link from "next/link";
-import { FileText, User, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { FileText, ExternalLink, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { cvService } from "@/services/cv.service";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface CVItem {
   id: string;
   candidateName: string;
   originalFileName: string;
   originalPdfUrl: string;
+  avatarUrl?: string | null;
   uploadedAt: string;
 }
 
@@ -81,10 +83,8 @@ export function RecentCVTable() {
                   {visibleRecords.map((item) => (
                     <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3 px-2">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#e8f1ff] text-[#0066ff] font-bold text-xs shrink-0">
-                            <User className="h-3.5 w-3.5" />
-                          </div>
+                        <div className="flex items-center space-x-2.5">
+                          <Avatar src={item.avatarUrl} name={item.candidateName} size="sm" />
                           <span className="font-bold text-sm text-slate-900 dark:text-white truncate max-w-[200px]">{item.candidateName}</span>
                         </div>
                       </td>

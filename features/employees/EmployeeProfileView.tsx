@@ -52,9 +52,17 @@ export function EmployeeProfileView({ profile: initialProfile, onUpdateProfile }
       {/* Header Profile Card */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-5">
-          <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-800 border-2 border-indigo-500/30 flex items-center justify-center text-slate-400">
-            {profile.avatarUrl ? (
-              <Image src={profile.avatarUrl} alt={profile.name} fill className="object-cover" />
+          <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-800 border-2 border-indigo-500/30 flex items-center justify-center text-slate-400 shrink-0">
+            {(profile.avatarUrl || profile.personalInformation?.photoUrl) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={(profile.avatarUrl || profile.personalInformation?.photoUrl)!}
+                alt={profile.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = "none";
+                }}
+              />
             ) : (
               <User className="w-12 h-12 text-slate-400" />
             )}
