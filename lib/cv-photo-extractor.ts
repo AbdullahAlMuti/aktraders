@@ -91,8 +91,12 @@ export async function extractAndSaveProfilePhoto(
     if (mimeType.startsWith("image/")) {
       const ext = mimeType.split("/")[1] || "png";
       const photoFileName = `${employeeId.toLowerCase()}_avatar.${ext}`;
-      fs.writeFileSync(path.join(photosDir, photoFileName), fileBuffer);
-      return `/uploads/photos/${photoFileName}`;
+      try {
+        fs.writeFileSync(path.join(photosDir, photoFileName), fileBuffer);
+        return `/uploads/photos/${photoFileName}`;
+      } catch {
+        return `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
+      }
     }
 
     // 2. PDF: extract embedded JPEG XObjects and pick the most portrait-like one.
@@ -111,8 +115,12 @@ export async function extractAndSaveProfilePhoto(
 
       if (best) {
         const photoFileName = `${employeeId.toLowerCase()}_avatar.jpg`;
-        fs.writeFileSync(path.join(photosDir, photoFileName), best.data);
-        return `/uploads/photos/${photoFileName}`;
+        try {
+          fs.writeFileSync(path.join(photosDir, photoFileName), best.data);
+          return `/uploads/photos/${photoFileName}`;
+        } catch {
+          return `data:image/jpeg;base64,${best.data.toString("base64")}`;
+        }
       }
     }
   } catch (err) {
